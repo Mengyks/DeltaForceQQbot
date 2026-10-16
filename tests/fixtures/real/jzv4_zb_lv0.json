@@ -1,0 +1,2238 @@
+{
+  "code": 0,
+  "message": "成功",
+  "msg": "成功",
+  "data": [
+    {
+      "count": 5,
+      "date": 1792060234,
+      "dateT": "2026-10-15 18:30:34",
+      "desc": "单枪，花费最少配装",
+      "list": [
+        {
+          "cz": -16769,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            }
+          ],
+          "index": 1,
+          "jz": 113436,
+          "name": "花费最少-单枪",
+          "price": 95731
+        },
+        {
+          "cz": -16272,
+          "data": [
+            {
+              "bl": 0,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 58,
+              "jiazhang": 1,
+              "jz": -69,
+              "name": "M16A4突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000014.png",
+              "price": 11265,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            }
+          ],
+          "index": 2,
+          "jz": 112974,
+          "name": "花费最少-单枪",
+          "price": 96228
+        },
+        {
+          "cz": -15953,
+          "data": [
+            {
+              "bl": 3,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 509,
+              "jiazhang": 0,
+              "jz": 407,
+              "name": "野牛冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000005.png",
+              "price": 12101,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -22,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 437,
+              "jiazhang": 1,
+              "jz": -3220,
+              "name": "野牛打击者标准枪管",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13020000438.png",
+              "price": 11037,
+              "type": "枪1-枪管"
+            }
+          ],
+          "index": 3,
+          "jz": 114194,
+          "name": "花费最少-单枪",
+          "price": 96547
+        },
+        {
+          "cz": -15905,
+          "data": [
+            {
+              "bl": 1,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 140,
+              "jiazhang": 0,
+              "jz": 60,
+              "name": "M870霰弹枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18030000004.png",
+              "price": 4800,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            },
+            {
+              "bl": 2,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 423,
+              "jiazhang": 0,
+              "jz": 159,
+              "name": "HT战术背心 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050002002.png",
+              "price": 6832,
+              "type": "护甲"
+            }
+          ],
+          "index": 4,
+          "jz": 113053,
+          "name": "花费最少-单枪",
+          "price": 96595
+        },
+        {
+          "cz": -15811,
+          "data": [
+            {
+              "bl": 1,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 140,
+              "jiazhang": 0,
+              "jz": 60,
+              "name": "M870霰弹枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18030000004.png",
+              "price": 4800,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            },
+            {
+              "bl": 9,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 534,
+              "jiazhang": 0,
+              "jz": 591,
+              "name": "简易防刺服",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050002001.png",
+              "price": 6926,
+              "type": "护甲"
+            }
+          ],
+          "index": 5,
+          "jz": 112715,
+          "name": "花费最少-单枪",
+          "price": 96689
+        }
+      ],
+      "name": "花费最少-单枪",
+      "zb": 112500
+    },
+    {
+      "count": 5,
+      "date": 1792060223,
+      "dateT": "2026-10-15 18:30:23",
+      "desc": "双枪，花费最少配装",
+      "list": [
+        {
+          "cz": -16769,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            }
+          ],
+          "index": 1,
+          "jz": 113436,
+          "name": "花费最少-双枪",
+          "price": 95731
+        },
+        {
+          "cz": -16272,
+          "data": [
+            {
+              "bl": 0,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 58,
+              "jiazhang": 1,
+              "jz": -69,
+              "name": "M16A4突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000014.png",
+              "price": 11265,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            }
+          ],
+          "index": 2,
+          "jz": 112974,
+          "name": "花费最少-双枪",
+          "price": 96228
+        },
+        {
+          "cz": -15953,
+          "data": [
+            {
+              "bl": 3,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 509,
+              "jiazhang": 0,
+              "jz": 407,
+              "name": "野牛冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000005.png",
+              "price": 12101,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -22,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 437,
+              "jiazhang": 1,
+              "jz": -3220,
+              "name": "野牛打击者标准枪管",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13020000438.png",
+              "price": 11037,
+              "type": "枪1-枪管"
+            }
+          ],
+          "index": 3,
+          "jz": 114194,
+          "name": "花费最少-双枪",
+          "price": 96547
+        },
+        {
+          "cz": -15905,
+          "data": [
+            {
+              "bl": 1,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 140,
+              "jiazhang": 0,
+              "jz": 60,
+              "name": "M870霰弹枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18030000004.png",
+              "price": 4800,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            },
+            {
+              "bl": 2,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 423,
+              "jiazhang": 0,
+              "jz": 159,
+              "name": "HT战术背心 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050002002.png",
+              "price": 6832,
+              "type": "护甲"
+            }
+          ],
+          "index": 4,
+          "jz": 113053,
+          "name": "花费最少-双枪",
+          "price": 96595
+        },
+        {
+          "cz": -15811,
+          "data": [
+            {
+              "bl": 1,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 140,
+              "jiazhang": 0,
+              "jz": 60,
+              "name": "M870霰弹枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18030000004.png",
+              "price": 4800,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            },
+            {
+              "bl": 9,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 534,
+              "jiazhang": 0,
+              "jz": 591,
+              "name": "简易防刺服",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050002001.png",
+              "price": 6926,
+              "type": "护甲"
+            }
+          ],
+          "index": 5,
+          "jz": 112715,
+          "name": "花费最少-双枪",
+          "price": 96689
+        }
+      ],
+      "name": "花费最少-双枪",
+      "zb": 112500
+    },
+    {
+      "count": 5,
+      "date": 1792060234,
+      "dateT": "2026-10-15 18:30:34",
+      "desc": "允许兑换，花费最少配装",
+      "list": [
+        {
+          "cz": -58283,
+          "data": [
+            {
+              "bl": -52,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "1次",
+                "purchaseDuration": "48小时"
+              },
+              "grade": 1,
+              "id": 50,
+              "jiazhang": 1,
+              "jz": -58341,
+              "name": "QCQ171冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000011.png",
+              "price": 52914,
+              "type": "枪1"
+            },
+            {
+              "bl": 0,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 124,
+              "jiazhang": 0,
+              "jz": 6,
+              "name": "安保头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001002.png",
+              "price": 1303,
+              "type": "头盔"
+            }
+          ],
+          "index": 1,
+          "jz": 112552,
+          "name": "花费最少-兑换",
+          "price": 54217
+        },
+        {
+          "cz": -40096,
+          "data": [
+            {
+              "bl": -38,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 1,
+              "id": 527,
+              "jiazhang": 1,
+              "jz": -19222,
+              "name": "G3战斗步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000023.png",
+              "price": 31225,
+              "type": "枪1"
+            },
+            {
+              "bl": -31,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 2,
+              "id": 1086,
+              "jiazhang": 1,
+              "jz": -3563,
+              "name": "实用战术枪托",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13040000105.png",
+              "price": 7766,
+              "type": "枪1-枪托"
+            },
+            {
+              "bl": -31,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 3,
+              "id": 153,
+              "jiazhang": 1,
+              "jz": -5603,
+              "name": "实用消音器",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13130000157.png",
+              "price": 12408,
+              "type": "枪1-枪口"
+            },
+            {
+              "bl": -36,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "2次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 3,
+              "id": 397,
+              "jiazhang": 1,
+              "jz": -12162,
+              "name": "Hvk快拆防弹衣",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050003002.png",
+              "price": 21005,
+              "type": "护甲"
+            }
+          ],
+          "index": 2,
+          "jz": 112954,
+          "name": "花费最少-兑换",
+          "price": 72404
+        },
+        {
+          "cz": -37991,
+          "data": [
+            {
+              "bl": -34,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 1,
+              "id": 511,
+              "jiazhang": 1,
+              "jz": -21705,
+              "name": "SV-98狙击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18060000007.png",
+              "price": 41096,
+              "type": "枪1"
+            },
+            {
+              "bl": -31,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 3,
+              "id": 153,
+              "jiazhang": 1,
+              "jz": -5603,
+              "name": "实用消音器",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13130000157.png",
+              "price": 12408,
+              "type": "枪1-枪口"
+            },
+            {
+              "bl": -36,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "2次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 3,
+              "id": 397,
+              "jiazhang": 1,
+              "jz": -12162,
+              "name": "Hvk快拆防弹衣",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050003002.png",
+              "price": 21005,
+              "type": "护甲"
+            }
+          ],
+          "index": 3,
+          "jz": 113979,
+          "name": "花费最少-兑换",
+          "price": 74509
+        },
+        {
+          "cz": -36046,
+          "data": [
+            {
+              "bl": -32,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "1次",
+                "purchaseDuration": "48小时"
+              },
+              "grade": 1,
+              "id": 134,
+              "jiazhang": 1,
+              "jz": -36215,
+              "name": "QJB201轻机枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18040000004.png",
+              "price": 76454,
+              "type": "枪1"
+            }
+          ],
+          "index": 4,
+          "jz": 112669,
+          "name": "花费最少-兑换",
+          "price": 76454
+        },
+        {
+          "cz": -35022,
+          "data": [
+            {
+              "bl": -27,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 1,
+              "id": 364,
+              "jiazhang": 1,
+              "jz": -14105,
+              "name": "SMG-45冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000006.png",
+              "price": 36299,
+              "type": "枪1"
+            },
+            {
+              "bl": -31,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 2,
+              "id": 1086,
+              "jiazhang": 1,
+              "jz": -3563,
+              "name": "实用战术枪托",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13040000105.png",
+              "price": 7766,
+              "type": "枪1-枪托"
+            },
+            {
+              "bl": -31,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "4次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 3,
+              "id": 153,
+              "jiazhang": 1,
+              "jz": -5603,
+              "name": "实用消音器",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13130000157.png",
+              "price": 12408,
+              "type": "枪1-枪口"
+            },
+            {
+              "bl": -36,
+              "exchange": "兑换",
+              "exchange_plus": {
+                "perCount": 1,
+                "purchaseCount": "2次",
+                "purchaseDuration": "8小时"
+              },
+              "grade": 3,
+              "id": 397,
+              "jiazhang": 1,
+              "jz": -12162,
+              "name": "Hvk快拆防弹衣",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050003002.png",
+              "price": 21005,
+              "type": "护甲"
+            }
+          ],
+          "index": 5,
+          "jz": 112911,
+          "name": "花费最少-兑换",
+          "price": 77478
+        }
+      ],
+      "name": "花费最少-兑换",
+      "zb": 112500
+    },
+    {
+      "count": 5,
+      "date": 1792060228,
+      "dateT": "2026-10-15 18:30:28",
+      "desc": "固定胸挂，花费最少配装",
+      "list": [
+        {
+          "cz": -15024,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 1,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 539,
+              "jiazhang": 0,
+              "jz": 61,
+              "name": "轻型防弹衣 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001004.png",
+              "price": 3142,
+              "type": "护甲"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 1,
+          "jz": 112530,
+          "name": "大胸挂",
+          "price": 97476
+        },
+        {
+          "cz": -14912,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 6,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 459,
+              "jiazhang": 0,
+              "jz": 111,
+              "name": "奔尼帽 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001003.png",
+              "price": 1843,
+              "type": "头盔"
+            },
+            {
+              "bl": 3,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 452,
+              "jiazhang": 0,
+              "jz": 46,
+              "name": "摩托马甲 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001001.png",
+              "price": 1411,
+              "type": "护甲"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 2,
+          "jz": 112546,
+          "name": "大胸挂",
+          "price": 97588
+        },
+        {
+          "cz": -14904,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 6,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 110,
+              "jiazhang": 0,
+              "jz": 101,
+              "name": "安保头盔 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001002.png",
+              "price": 1583,
+              "type": "头盔"
+            },
+            {
+              "bl": 5,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 274,
+              "jiazhang": 0,
+              "jz": 84,
+              "name": "安保防弹衣 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001002.png",
+              "price": 1679,
+              "type": "护甲"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 3,
+          "jz": 112526,
+          "name": "大胸挂",
+          "price": 97596
+        },
+        {
+          "cz": -14894,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 5,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 524,
+              "jiazhang": 0,
+              "jz": 77,
+              "name": "奔尼帽 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001003.png",
+              "price": 1593,
+              "type": "头盔"
+            },
+            {
+              "bl": 5,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 274,
+              "jiazhang": 0,
+              "jz": 84,
+              "name": "安保防弹衣 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001002.png",
+              "price": 1679,
+              "type": "护甲"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 4,
+          "jz": 112560,
+          "name": "大胸挂",
+          "price": 97606
+        },
+        {
+          "cz": -14867,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 6,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 110,
+              "jiazhang": 0,
+              "jz": 101,
+              "name": "安保头盔 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001002.png",
+              "price": 1583,
+              "type": "头盔"
+            },
+            {
+              "bl": 3,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 487,
+              "jiazhang": 0,
+              "jz": 58,
+              "name": "摩托马甲 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001001.png",
+              "price": 1716,
+              "type": "护甲"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 5,
+          "jz": 112589,
+          "name": "大胸挂",
+          "price": 97633
+        }
+      ],
+      "name": "大胸挂",
+      "zb": 112500
+    },
+    {
+      "count": 5,
+      "date": 1792060226,
+      "dateT": "2026-10-15 18:30:26",
+      "desc": "高级逻辑：固定背包/胸挂，单枪，花费最少配装",
+      "list": [
+        {
+          "cz": -11168,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 52,
+              "jiazhang": 1,
+              "jz": -7946,
+              "name": "视点3倍瞄准镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000073.png",
+              "price": 48945,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 5,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 287,
+              "jiazhang": 0,
+              "jz": 59,
+              "name": "老式钢盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001001.png",
+              "price": 1147,
+              "type": "头盔"
+            },
+            {
+              "bl": -10,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 170,
+              "jiazhang": 1,
+              "jz": -3430,
+              "name": "野战徒步背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080004002.png",
+              "price": 30315,
+              "type": "背包"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 1,
+          "jz": 112930,
+          "name": "大容量-AZ3大胃王",
+          "price": 101332
+        },
+        {
+          "cz": -11157,
+          "data": [
+            {
+              "bl": -9,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 353,
+              "jiazhang": 1,
+              "jz": -3791,
+              "name": "勇士冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000009.png",
+              "price": 38035,
+              "type": "枪1"
+            },
+            {
+              "bl": -28,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 190,
+              "jiazhang": 1,
+              "jz": -4537,
+              "name": "勇士海狸枪管",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13020000507.png",
+              "price": 11523,
+              "type": "枪1-枪管"
+            },
+            {
+              "bl": -4,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 33,
+              "jiazhang": 1,
+              "jz": -421,
+              "name": "MC防弹头盔 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010002004.png",
+              "price": 8923,
+              "type": "头盔"
+            },
+            {
+              "bl": 4,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 82,
+              "jiazhang": 0,
+              "jz": 111,
+              "name": "安保防弹衣",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001002.png",
+              "price": 2390,
+              "type": "护甲"
+            },
+            {
+              "bl": -10,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 170,
+              "jiazhang": 1,
+              "jz": -3430,
+              "name": "野战徒步背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080004002.png",
+              "price": 30315,
+              "type": "背包"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 2,
+          "jz": 112664,
+          "name": "大容量-AZ3大胃王",
+          "price": 101343
+        },
+        {
+          "cz": -11052,
+          "data": [
+            {
+              "bl": 1,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 140,
+              "jiazhang": 0,
+              "jz": 60,
+              "name": "M870霰弹枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18030000004.png",
+              "price": 4800,
+              "type": "枪1"
+            },
+            {
+              "bl": -14,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 587,
+              "jiazhang": 1,
+              "jz": -7431,
+              "name": "霰弹枪涡流收束器",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13130000189.png",
+              "price": 43211,
+              "type": "枪1-枪口"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            },
+            {
+              "bl": 3,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 452,
+              "jiazhang": 0,
+              "jz": 46,
+              "name": "摩托马甲 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001001.png",
+              "price": 1411,
+              "type": "护甲"
+            },
+            {
+              "bl": -10,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 170,
+              "jiazhang": 1,
+              "jz": -3430,
+              "name": "野战徒步背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080004002.png",
+              "price": 30315,
+              "type": "背包"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 3,
+          "jz": 113299,
+          "name": "大容量-AZ3大胃王",
+          "price": 101448
+        },
+        {
+          "cz": -11012,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 52,
+              "jiazhang": 1,
+              "jz": -7946,
+              "name": "视点3倍瞄准镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000073.png",
+              "price": 48945,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 0,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 124,
+              "jiazhang": 0,
+              "jz": 6,
+              "name": "安保头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001002.png",
+              "price": 1303,
+              "type": "头盔"
+            },
+            {
+              "bl": -10,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 170,
+              "jiazhang": 1,
+              "jz": -3430,
+              "name": "野战徒步背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080004002.png",
+              "price": 30315,
+              "type": "背包"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 4,
+          "jz": 113139,
+          "name": "大容量-AZ3大胃王",
+          "price": 101488
+        },
+        {
+          "cz": -10991,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 52,
+              "jiazhang": 1,
+              "jz": -7946,
+              "name": "视点3倍瞄准镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000073.png",
+              "price": 48945,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 6,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 1,
+              "jiazhang": 0,
+              "jz": 80,
+              "name": "老式钢盔 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010001001.png",
+              "price": 1324,
+              "type": "头盔"
+            },
+            {
+              "bl": -10,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 170,
+              "jiazhang": 1,
+              "jz": -3430,
+              "name": "野战徒步背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080004002.png",
+              "price": 30315,
+              "type": "背包"
+            },
+            {
+              "bl": 7,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 435,
+              "jiazhang": 0,
+              "jz": 747,
+              "name": "G01战术弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003004.png",
+              "price": 10157,
+              "type": "胸挂"
+            }
+          ],
+          "index": 5,
+          "jz": 113086,
+          "name": "大容量-AZ3大胃王",
+          "price": 101509
+        }
+      ],
+      "name": "大容量-AZ3大胃王",
+      "zb": 112500
+    },
+    {
+      "count": 5,
+      "date": 1792060234,
+      "dateT": "2026-10-15 18:30:34",
+      "desc": "必定存在胸挂和背包",
+      "list": [
+        {
+          "cz": -16053,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 0,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 171,
+              "jiazhang": 0,
+              "jz": 68,
+              "name": "轻型户外背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080002001.png",
+              "price": 7013,
+              "type": "背包"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 141,
+              "jiazhang": 1,
+              "jz": -851,
+              "name": "DSA战术胸挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003003.png",
+              "price": 5257,
+              "type": "胸挂"
+            }
+          ],
+          "index": 1,
+          "jz": 113092,
+          "name": "实用优先",
+          "price": 96447
+        },
+        {
+          "cz": -15984,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 3,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 452,
+              "jiazhang": 0,
+              "jz": 46,
+              "name": "摩托马甲 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001001.png",
+              "price": 1411,
+              "type": "护甲"
+            },
+            {
+              "bl": 0,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 171,
+              "jiazhang": 0,
+              "jz": 68,
+              "name": "轻型户外背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080002001.png",
+              "price": 7013,
+              "type": "背包"
+            },
+            {
+              "bl": -15,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 324,
+              "jiazhang": 1,
+              "jz": -698,
+              "name": "简易携行弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003001.png",
+              "price": 3915,
+              "type": "胸挂"
+            }
+          ],
+          "index": 2,
+          "jz": 112962,
+          "name": "实用优先",
+          "price": 96516
+        },
+        {
+          "cz": -15783,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 4,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 482,
+              "jiazhang": 0,
+              "jz": 381,
+              "name": "露营背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080002004.png",
+              "price": 8625,
+              "type": "背包"
+            },
+            {
+              "bl": -15,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 324,
+              "jiazhang": 1,
+              "jz": -698,
+              "name": "简易携行弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003001.png",
+              "price": 3915,
+              "type": "胸挂"
+            }
+          ],
+          "index": 3,
+          "jz": 112896,
+          "name": "实用优先",
+          "price": 96717
+        },
+        {
+          "cz": -15783,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 4,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 192,
+              "jiazhang": 0,
+              "jz": 382,
+              "name": "突袭战术背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080002003.png",
+              "price": 8625,
+              "type": "背包"
+            },
+            {
+              "bl": -15,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 324,
+              "jiazhang": 1,
+              "jz": -698,
+              "name": "简易携行弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003001.png",
+              "price": 3915,
+              "type": "胸挂"
+            }
+          ],
+          "index": 4,
+          "jz": 112895,
+          "name": "实用优先",
+          "price": 96717
+        },
+        {
+          "cz": -15716,
+          "data": [
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪1"
+            },
+            {
+              "bl": -16,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 4,
+              "id": 157,
+              "jiazhang": 1,
+              "jz": -14834,
+              "name": "3/7可调倍率狙击镜",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/13110000057.png",
+              "price": 73409,
+              "type": "枪1-瞄具"
+            },
+            {
+              "bl": 5,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 274,
+              "jiazhang": 0,
+              "jz": 84,
+              "name": "安保防弹衣 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001002.png",
+              "price": 1679,
+              "type": "护甲"
+            },
+            {
+              "bl": 0,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 171,
+              "jiazhang": 0,
+              "jz": 68,
+              "name": "轻型户外背包",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11080002001.png",
+              "price": 7013,
+              "type": "背包"
+            },
+            {
+              "bl": -15,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 324,
+              "jiazhang": 1,
+              "jz": -698,
+              "name": "简易携行弹挂",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11070003001.png",
+              "price": 3915,
+              "type": "胸挂"
+            }
+          ],
+          "index": 5,
+          "jz": 113192,
+          "name": "实用优先",
+          "price": 96784
+        }
+      ],
+      "name": "实用优先",
+      "zb": 112500
+    },
+    {
+      "count": 5,
+      "date": 1792060214,
+      "dateT": "2026-10-15 18:30:14",
+      "desc": "懒人专属，不想装配件",
+      "list": [
+        {
+          "cz": -11145,
+          "data": [
+            {
+              "bl": -9,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 442,
+              "jiazhang": 1,
+              "jz": -8747,
+              "name": "PKM通用机枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18040000001.png",
+              "price": 79033,
+              "type": "枪1"
+            },
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪2"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            }
+          ],
+          "index": 1,
+          "jz": 112973,
+          "name": "无配件",
+          "price": 101355
+        },
+        {
+          "cz": -11143,
+          "data": [
+            {
+              "bl": -9,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 353,
+              "jiazhang": 1,
+              "jz": -3791,
+              "name": "勇士冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000009.png",
+              "price": 38035,
+              "type": "枪1"
+            },
+            {
+              "bl": -11,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 573,
+              "jiazhang": 1,
+              "jz": -6522,
+              "name": "M249轻机枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18040000002.png",
+              "price": 51768,
+              "type": "枪2"
+            },
+            {
+              "bl": -13,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 116,
+              "jiazhang": 1,
+              "jz": -1843,
+              "name": "防暴头盔 (破损)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010003001.png",
+              "price": 11554,
+              "type": "头盔"
+            }
+          ],
+          "index": 2,
+          "jz": 113513,
+          "name": "无配件",
+          "price": 101357
+        },
+        {
+          "cz": -10987,
+          "data": [
+            {
+              "bl": -9,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 401,
+              "jiazhang": 1,
+              "jz": -4251,
+              "name": "MP5冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000001.png",
+              "price": 38432,
+              "type": "枪1"
+            },
+            {
+              "bl": -11,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 573,
+              "jiazhang": 1,
+              "jz": -6522,
+              "name": "M249轻机枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18040000002.png",
+              "price": 51768,
+              "type": "枪2"
+            },
+            {
+              "bl": -4,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 33,
+              "jiazhang": 1,
+              "jz": -421,
+              "name": "MC防弹头盔 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010002004.png",
+              "price": 8923,
+              "type": "头盔"
+            },
+            {
+              "bl": 4,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 82,
+              "jiazhang": 0,
+              "jz": 111,
+              "name": "安保防弹衣",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001002.png",
+              "price": 2390,
+              "type": "护甲"
+            }
+          ],
+          "index": 3,
+          "jz": 112596,
+          "name": "无配件",
+          "price": 101513
+        },
+        {
+          "cz": -10917,
+          "data": [
+            {
+              "bl": -11,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 573,
+              "jiazhang": 1,
+              "jz": -6522,
+              "name": "M249轻机枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18040000002.png",
+              "price": 51768,
+              "type": "枪1"
+            },
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 175,
+              "jiazhang": 1,
+              "jz": -1028,
+              "name": "CAR-15突击步枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18010000031.png",
+              "price": 10768,
+              "type": "枪2"
+            },
+            {
+              "bl": -8,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 3,
+              "id": 144,
+              "jiazhang": 1,
+              "jz": -3658,
+              "name": "射手战术背心 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050003004.png",
+              "price": 39047,
+              "type": "护甲"
+            }
+          ],
+          "index": 4,
+          "jz": 112791,
+          "name": "无配件",
+          "price": 101583
+        },
+        {
+          "cz": -10753,
+          "data": [
+            {
+              "bl": -9,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 401,
+              "jiazhang": 1,
+              "jz": -4251,
+              "name": "MP5冲锋枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18020000001.png",
+              "price": 38432,
+              "type": "枪1"
+            },
+            {
+              "bl": -11,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 573,
+              "jiazhang": 1,
+              "jz": -6522,
+              "name": "M249轻机枪",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/18040000002.png",
+              "price": 51768,
+              "type": "枪2"
+            },
+            {
+              "bl": -4,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 2,
+              "id": 33,
+              "jiazhang": 1,
+              "jz": -421,
+              "name": "MC防弹头盔 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11010002004.png",
+              "price": 8923,
+              "type": "头盔"
+            },
+            {
+              "bl": 5,
+              "exchange": "",
+              "exchange_plus": null,
+              "grade": 1,
+              "id": 103,
+              "jiazhang": 0,
+              "jz": 146,
+              "name": "尼龙防弹衣 (几乎全新)",
+              "pic": "https://playerhub.df.qq.com/playerhub/60004/object/11050001003.png",
+              "price": 2624,
+              "type": "护甲"
+            }
+          ],
+          "index": 5,
+          "jz": 112795,
+          "name": "无配件",
+          "price": 101747
+        }
+      ],
+      "name": "无配件",
+      "zb": 112500
+    }
+  ]
+}

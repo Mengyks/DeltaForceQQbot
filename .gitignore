@@ -1,0 +1,39 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- NoneBot ----
+# 本地运行产生的缓存与数据（登录态、数据库等一律不提交）
+.cache/
+data/
+*.db
+*.sqlite3
+
+# ---- 配置与密钥 ----
+.env
+.env.*
+!.env.example
+
+# ---- 编辑器 / 系统 ----
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+desktop.ini
+
+# ---- NapCat / 协议端 ----
+napcat/
+NapCat/
+QQ/

@@ -1,0 +1,55 @@
+# 本地与云服务器通用的部署编排
+#
+# 首次使用：
+#   1) cp .env.example .env 并填入 ORZICE_TOKEN、ONEBOT_ACCESS_TOKEN
+#   2) docker compose build
+#   3) docker compose up -d bot                 # 只起机器人（本机联调）
+#   4) docker compose up -d                     # 连 NapCat 一起起（生产）
+#   5) 浏览器打开 http://127.0.0.1:6099 扫码登录 QQ，
+#      并在 NapCat 的「网络配置」里新增反向 WebSocket：
+#          ws://bot:8099/onebot/v11/ws
+#   （NapCat 与 bot 在同一 compose 网络内，直接用服务名 bot 访问）
+
+name: deltaforce-qqbot
+
+services:
+  bot:
+    build:
+      context: .
+    image: deltaforce-qqbot:0.1.0
+    container_name: deltaforce-bot
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false # 允许暂时没有 .env（缺 token 时机器人会提示而不是崩溃）
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8099"
+    ports:
+      # 只绑定回环：同网络内的 NapCat 通过 ws://bot:8099 访问，无需暴露到公网
+      - "127.0.0.1:8099:8099"
+    volumes:
+      # 档位/别名配置挂到容器里：改完 tiers.json 重启容器即生效，不必重新构建
+      - ./config:/app/config:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  napcat:
+    image: mlikiowa/napcat-docker:latest
+    container_name: deltaforce-napcat
+    restart: unless-stopped
+    environment:
+      NAPCAT_UID: "1000"
+      NAPCAT_GID: "1000"
+    ports:
+      # NapCat WebUI：扫码登录、配置反向 WS 都在这里；仅本机可访问
+      - "127.0.0.1:6099:6099"
+    volumes:
+      - ./napcat/config:/app/napcat/config
+      - ./napcat/data:/app/napcat/data
+      - ./napcat/qq:/app/.config/QQ
+    depends_on:
+      - bot

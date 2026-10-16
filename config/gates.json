@@ -1,0 +1,63 @@
+{
+  "_comment": "卡战备入口配置：一个『地图 + 难度』对应数据帝接口的一个档位（lv）。threshold 为门槛战备值，已用真实接口响应核对（lv0=112500、lv1=187500、lv2=550000、lv3=600000、lv5=780000）；回复里展示的门槛以接口返回的 zb 为准，此处仅用于菜单与错误提示。命令只接受「地图 + 难度」写法（不提供数字快捷）。",
+  "difficulties": ["常规", "机密", "绝密"],
+  "regular_note": "常规模式不需要战备值，不提供卡战备建议",
+  "gates": [
+    {
+      "map": "零号大坝",
+      "map_aliases": ["大坝"],
+      "difficulty": "机密",
+      "lv": 0,
+      "threshold": 112500,
+      "note": ""
+    },
+    {
+      "map": "长弓溪谷",
+      "map_aliases": ["长弓"],
+      "difficulty": "机密",
+      "lv": 0,
+      "threshold": 112500,
+      "note": ""
+    },
+    {
+      "map": "巴克什",
+      "map_aliases": ["集市"],
+      "difficulty": "机密",
+      "lv": 1,
+      "threshold": 187500,
+      "note": ""
+    },
+    {
+      "map": "航天基地",
+      "map_aliases": ["航天"],
+      "difficulty": "机密",
+      "lv": 1,
+      "threshold": 187500,
+      "note": ""
+    },
+    {
+      "map": "巴克什",
+      "map_aliases": ["集市"],
+      "difficulty": "绝密",
+      "lv": 2,
+      "threshold": 550000,
+      "note": ""
+    },
+    {
+      "map": "航天基地",
+      "map_aliases": ["航天"],
+      "difficulty": "绝密",
+      "lv": 3,
+      "threshold": 600000,
+      "note": ""
+    },
+    {
+      "map": "潮汐监狱",
+      "map_aliases": ["潮汐", "监狱"],
+      "difficulty": "绝密",
+      "lv": 5,
+      "threshold": 780000,
+      "note": "另需 8 万哈夫币入场费"
+    }
+  ]
+}

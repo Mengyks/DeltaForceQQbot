@@ -1,0 +1,30 @@
+# 构建上下文排除项：镜像里只需要运行时代码与配置
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 密钥与本地数据绝不进镜像
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.sqlite3
+*.log
+
+# 本地协议端与联调工具（容器里不需要）
+napcat/
+tests/
+scripts/
+
+# 文档与版本控制
+docs/
+.git/
+.gitignore
+.idea/
+.vscode/

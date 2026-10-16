@@ -1,0 +1,39 @@
+{
+  "code": 0,
+  "message": "成功",
+  "msg": "成功",
+  "data": {
+    "cz": -12345,
+    "jz": 50120,
+    "name": "自定义",
+    "price": 45100,
+    "data": [
+      {
+        "bl": 8,
+        "exchange": "",
+        "exchange_plus": null,
+        "grade": 3,
+        "id": 510,
+        "jiazhang": 0,
+        "jz": 30000,
+        "name": "CAR-15",
+        "pic": "https://example.invalid/e.png",
+        "price": 12000,
+        "type": "枪械1"
+      },
+      {
+        "bl": -2,
+        "exchange": "",
+        "exchange_plus": null,
+        "grade": 2,
+        "id": 511,
+        "jiazhang": -10,
+        "jz": 20120,
+        "name": "户外棒球帽",
+        "pic": "https://example.invalid/f.png",
+        "price": 3100,
+        "type": "头盔"
+      }
+    ]
+  }
+}
