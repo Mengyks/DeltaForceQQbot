@@ -31,45 +31,74 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ConnectionState:
-    """连线状态与掉线信息。"""
+    """单个 bot 的连线状态与掉线信息。"""
 
+    bot_id: str = ""
     online: bool = False
     online_since: float = field(default_factory=time.time)
     offline_since: float | None = None
     offline_reason: str | None = None
-    offline_count: int = 0  # 本进程启动以来累计掉线次数
+    offline_count: int = 0  # 本进程启动以来该 bot 累计掉线次数
 
 
 class ConnectionWatchdog:
-    """纯逻辑的连线看护：记录状态、算离线时长、生成通知文案。"""
+    """连线看护：按 bot 分别记录状态、算离线时长、生成通知文案。
+
+    为什么按 bot 分别记录：同一进程里可能连上多个 OneBot 客户端
+    （例如联调用的假 NapCat），共用一个全局状态会互相冲掉对方的在线/离线记录
+    （实测踩到：假客户端连上来后把真实机器人的状态改成了"已上线"）。
+    """
 
     def __init__(self, time_fn: Callable[[], float] = time.time) -> None:
         self._time = time_fn
-        self.state = ConnectionState(online_since=self._time())
+        self._states: dict[str, ConnectionState] = {}
 
-    def mark_online(self) -> None:
-        self.state.online = True
-        self.state.online_since = self._time()
+    def state_of(self, bot_id: str = "") -> ConnectionState:
+        key = str(bot_id)
+        if key not in self._states:
+            self._states[key] = ConnectionState(bot_id=key, online_since=self._time())
+        return self._states[key]
 
-    def mark_offline(self) -> None:
-        self.state.online = False
-        self.state.offline_since = self._time()
-        self.state.offline_count += 1
+    @property
+    def state(self) -> ConnectionState:
+        """默认 bot（空 key）的状态，兼容旧调用与简单场景。"""
+        return self.state_of("")
 
-    def record_reason(self, reason: str) -> None:
+    def mark_online(self, bot_id: str = "") -> tuple[float, str | None] | None:
+        """标记上线。返回（离线时长, 原因）；**此前没有离线记录时返回 None**。
+
+        返回 None 是刻意设计：进程刚启动后的第一次连接并没有"离线过"，
+        不应该通知（否则每次重启都会误报"离线 0 秒"）。
+        """
+        state = self.state_of(bot_id)
+        result: tuple[float, str | None] | None = None
+        if state.offline_since is not None:
+            result = (max(self._time() - state.offline_since, 0.0), state.offline_reason)
+            state.offline_since = None
+            state.offline_reason = None
+        state.online = True
+        state.online_since = self._time()
+        return result
+
+    def mark_offline(self, bot_id: str = "") -> int:
+        """标记离线，返回该 bot 累计掉线次数。"""
+        state = self.state_of(bot_id)
+        state.online = False
+        state.offline_since = self._time()
+        state.offline_count += 1
+        return state.offline_count
+
+    def record_reason(self, reason: str, bot_id: str = "") -> None:
         """记录 QQ 给出的下线原因（来自 bot_offline 通知）。"""
-        self.state.offline_reason = reason
+        self.state_of(bot_id).offline_reason = reason
 
+    def online_duration(self, bot_id: str = "") -> float:
+        return max(self._time() - self.state_of(bot_id).online_since, 0.0)
+
+    # 兼容旧接口
     def take_offline_summary(self) -> tuple[float, str | None]:
-        """取出本次离线时长与原因，并把原因清空（避免下次重复使用旧原因）。"""
-        offline_since = self.state.offline_since
-        downtime = (self._time() - offline_since) if offline_since is not None else 0.0
-        reason, self.state.offline_reason = self.state.offline_reason, None
-        self.state.offline_since = None
-        return max(downtime, 0.0), reason
-
-    def online_duration(self) -> float:
-        return max(self._time() - self.state.online_since, 0.0)
+        result = self.mark_online("")
+        return result if result is not None else (0.0, None)
 
 
 def format_recovery_message(*, downtime: float, reason: str | None, count: int) -> str:
@@ -129,11 +158,19 @@ def install_watchdog(settings: Settings):
     watchdog = ConnectionWatchdog()
     alert_users = parse_alert_users(settings.alert_qq)
 
-    async def notify_recovered(bot: Bot) -> None:
-        downtime, reason = watchdog.take_offline_summary()
+    @driver.on_bot_connect
+    async def _on_connect(bot: Bot) -> None:
+        bot_id = str(bot.self_id)
+        summary = watchdog.mark_online(bot_id)
+        logger.info("机器人 %s 已上线", bot_id)
+        if summary is None:
+            return  # 本进程内此前没有离线记录（例如刚重启），不通知
+        downtime, reason = summary
         if downtime < settings.alert_min_downtime:
+            logger.info("离线 %.0f 秒后恢复，未达告警阈值（%s 秒），不通知", downtime, settings.alert_min_downtime)
             return
-        text = format_recovery_message(downtime=downtime, reason=reason, count=watchdog.state.offline_count)
+        state = watchdog.state_of(bot_id)
+        text = format_recovery_message(downtime=downtime, reason=reason, count=state.offline_count)
         logger.warning("检测到离线 %.0f 秒后恢复（原因：%s）", downtime, reason or "未知")
         for user_id in alert_users:
             try:
@@ -142,20 +179,15 @@ def install_watchdog(settings: Settings):
                 logger.warning("给 %s 发送恢复通知失败：%s", user_id, exc.__class__.__name__)
         await push_webhook(settings, title="三角洲机器人已恢复", text=text)
 
-    @driver.on_bot_connect
-    async def _on_connect(bot: Bot) -> None:
-        logger.info("机器人 %s 已上线（离线状态由看护记录）", bot.self_id)
-        await notify_recovered(bot)
-        watchdog.mark_online()
-
     @driver.on_bot_disconnect
     async def _on_disconnect(bot: Bot) -> None:
-        watchdog.mark_offline()
-        logger.warning("机器人 %s 已离线，累计第 %s 次", bot.self_id, watchdog.state.offline_count)
+        bot_id = str(bot.self_id)
+        count = watchdog.mark_offline(bot_id)
+        logger.warning("机器人 %s 已离线，累计第 %s 次", bot_id, count)
         await push_webhook(
             settings,
             title="三角洲机器人已离线",
-            text=f"机器人 {bot.self_id} 与 QQ 的连接已断开。若长时间不恢复，请检查 NapCat（journalctl -u napcat）。",
+            text=f"机器人 {bot_id} 与 QQ 的连接已断开。若长时间不恢复，请检查 NapCat（journalctl -u napcat）。",
         )
 
     try:
@@ -170,7 +202,7 @@ def install_watchdog(settings: Settings):
                 data = {}
             if data.get("notice_type") == "bot_offline":
                 reason = str(data.get("message") or data.get("tag") or "账号被下线")
-                watchdog.record_reason(reason)
+                watchdog.record_reason(reason, str(data.get("self_id") or ""))
                 logger.error("QQ 下线通知：%s", reason)
                 await push_webhook(settings, title="三角洲机器人的 QQ 账号被下线", text=reason)
     except Exception as exc:  # noqa: BLE001

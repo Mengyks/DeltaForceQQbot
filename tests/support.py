@@ -91,6 +91,30 @@ class StubService:
         return self.plan
 
 
+class StubRenderer:
+    """替代 CardRenderer：不启动浏览器，记录调用次数并可注入异常。"""
+
+    def __init__(self, error: Exception | None = None) -> None:
+        self.error = error
+        self.calls: list[object] = []
+
+    async def render(self, context: object) -> bytes:
+        self.calls.append(context)
+        if self.error is not None:
+            raise self.error
+        return b"\x89PNG\r\n\x1a\n" + b"stub-card" * 8
+
+
+class StubAssets:
+    """替代 AssetLibrary：一律返回 None（走占位块渲染路径）。"""
+
+    def item_image(self, name: str, item_type: str | None, grade: int | None):
+        return None
+
+    def background(self, map_name: str):
+        return None
+
+
 class StubRuntime:
     """替代 Runtime：只提供命令编排需要的接口。"""
 
@@ -100,6 +124,7 @@ class StubRuntime:
         settings: Settings | None = None,
         gates: GateConfig | None = None,
         debug_groups: set[int] | None = None,
+        renderer: Any = None,
     ) -> None:
         from deltaforce_bot.adapters.ratelimit import SlidingWindowLimiter
 
@@ -109,6 +134,12 @@ class StubRuntime:
         self.user_limiter = SlidingWindowLimiter(self.settings.rate_limit_user)
         self.group_limiter = SlidingWindowLimiter(self.settings.rate_limit_group)
         self.debug_groups = debug_groups or set()
+        from deltaforce_bot.adapters.cache import SingleFlight, TTLCache
+
+        self.renderer = renderer if renderer is not None else StubRenderer()
+        self.assets = StubAssets()
+        self.image_cache: TTLCache = TTLCache()
+        self.render_flight = SingleFlight()
 
     def is_debug_group(self, group_id: int | None) -> bool:
         return group_id is not None and group_id in self.debug_groups

@@ -37,3 +37,11 @@ desktop.ini
 napcat/
 NapCat/
 QQ/
+
+# ---- 静态资源：图片一律不入库（体积大；用 scripts/fetch_item_images.py 重新获取或本机直连服务器）----
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.webp
+assets/**/*.gif
+assets/_preview/

@@ -82,6 +82,21 @@ async def test_by_gate_uses_requested_gate_level() -> None:
     assert client.calls[0]["params"] == {"lv": 0}
 
 
+def test_three_low_gates_share_cache_key() -> None:
+    """零号大坝 / 长弓溪谷 / AZ3 的机密难度同门槛（lv=0），因此共用同一份 4 小时缓存。
+
+    这就是"查这三张图只请求一次"的实现方式：缓存键只包含 lv，不包含地图名。
+    """
+    from deltaforce_bot.adapters.orzice import OrziceClient
+
+    gates = [g for g in GATES.gates if g.map in {"零号大坝", "长弓溪谷", "az3"}]
+    assert len(gates) == 3
+    assert {g.lv for g in gates} == {0}
+
+    keys = {OrziceClient.cache_key(V4_PATH, {"lv": g.lv}) for g in gates}
+    assert len(keys) == 1  # 三个入口 → 同一个缓存键
+
+
 def test_cheap_key_sorts_by_price() -> None:
     plans = [
         LoadoutPlan(name="b", price=200, cz=-10),

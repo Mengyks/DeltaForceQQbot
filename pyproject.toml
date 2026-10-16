@@ -1,6 +1,6 @@
 [project]
 name = "deltaforce-qqbot"
-version = "0.1.0"
+version = "0.2.0"
 description = "为《三角洲行动》玩家提供数据服务的 QQ 群机器人"
 requires-python = ">=3.13,<4.0"
 dependencies = [
@@ -15,6 +15,11 @@ dev = [
     "pytest>=8",
     "pytest-asyncio>=0.24",
     "paramiko>=3.4",  # scripts/deploy_server.py 用（部署到服务器）
+]
+# 图片卡片渲染（v1.1）：Jinja2 模板 + Playwright 无头浏览器截图
+render = [
+    "jinja2>=3.1",
+    "playwright>=1.40",
 ]
 
 [build-system]

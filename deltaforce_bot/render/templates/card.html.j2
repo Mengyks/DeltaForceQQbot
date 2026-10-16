@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; }
+  html, body { background: #0d1117; }
+  body {
+    margin: 0; width: 1040px;
+    font-family: "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "WenQuanYi Zen Hei", "WenQuanYi Micro Hei", "PingFang SC", sans-serif;
+    color: #eef3f8;
+  }
+  .card { position: relative; overflow: hidden; background: #0d1117; }
+  .bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    opacity: .22;               /* 背景淡化，避免压住文字（原型要求） */
+  }
+  .bg-dim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(8, 11, 15, .55), rgba(8, 11, 15, .86));
+  }
+  .content { position: relative; padding: 22px 26px 20px; }
+
+  h1 { margin: 0 0 8px; font-size: 36px; letter-spacing: 1px; }
+  h1 .diff { }
+  .sub { font-size: 17px; color: #9fb0c3; margin-bottom: 14px; }
+  .sep { height: 3px; background: #e53935; margin-bottom: 20px; }
+
+  .body { display: flex; gap: 18px; align-items: flex-start; }
+
+  /* 左侧四个装备位：2×2 */
+  .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 452px; }
+  .slot {
+    border: 3px solid #7a8794; border-radius: 10px;
+    background: rgba(16, 22, 30, .78);
+    padding: 10px; min-height: 178px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .slot.empty { opacity: .28; border-style: dashed; min-height: 96px; justify-content: center; }
+  .slot-label { font-size: 20px; font-weight: 700; color: #cfdcea; align-self: flex-start; }
+  .slot img { height: 74px; max-width: 100%; object-fit: contain; }
+  .noimg {
+    height: 74px; width: 74px; border-radius: 8px; background: #1b232c;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: #5b6b7c;
+  }
+  .slot-name { font-size: 17px; text-align: center; line-height: 1.25; }
+  .slot-stat { font-size: 15px; color: #9fb0c3; }
+  .cond {
+    font-size: 14px; padding: 1px 10px; border-radius: 999px;
+    color: #fff; font-weight: 700;
+  }
+  .tag-exchange {
+    font-size: 13px; padding: 0 6px; border-radius: 4px;
+    background: rgba(255, 212, 121, .18); color: #ffd479; margin-left: 6px;
+    white-space: nowrap;
+  }
+  .exchange-hint { color: #ffd479; }
+
+  /* 右侧武器区 */
+  .weapons { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .weapon {
+    border: 2px solid #3a4756; border-radius: 10px;
+    background: rgba(16, 22, 30, .78); padding: 12px 14px;
+  }
+  .weapon-head { display: flex; align-items: center; gap: 12px; }
+  .weapon-label {
+    font-size: 16px; font-weight: 700; color: #ffd479; white-space: nowrap;
+    background: rgba(255, 212, 121, .12); border-radius: 6px; padding: 2px 8px;
+  }
+  .weapon img { height: 52px; object-fit: contain; }
+  .weapon-name { font-size: 20px; font-weight: 700; }
+  .weapon-stat { margin-left: auto; font-size: 15px; color: #9fb0c3; }
+  .attachments { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .att { font-size: 16px; color: #d8e3ef; }
+  .att.none { color: #7f8fa0; }
+
+  .footer {
+    margin-top: 18px; border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 12px;
+  }
+  .totals { font-size: 20px; font-weight: 700; }
+  .totals .price { color: #ffd479; }
+  .totals .saved { color: #7ee0a1; }
+  .alts { margin-top: 6px; font-size: 15px; color: #9fb0c3; }
+</style>
+</head>
+<body>
+<div class="card">
+  {% if background_url %}<div class="bg" style="background-image: url('{{ background_url }}')"></div>{% endif %}
+  <div class="bg-dim"></div>
+  <div class="content">
+    <h1>{{ map_name }}——<span class="diff" style="color: {{ difficulty_color }}">{{ difficulty }}</span></h1>
+    <div class="sub">门槛 {{ threshold }} ｜ 数据源 {{ updated_at }}{{ cache_note }}{% if include_exchange %} ｜ <span class="exchange-hint">含军需处兑换</span>{% endif %}</div>
+    <div class="sep"></div>
+
+    <div class="body">
+      <div class="slots">
+        {% for slot in slots_padded %}
+          {% if slot %}
+          <div class="slot" style="border-color: {{ slot.border_color }}">
+            <div class="slot-label">{{ slot.label }}</div>
+            {% if slot.img_url %}
+              <img src="{{ slot.img_url }}" alt="{{ slot.name }}">
+            {% else %}
+              <div class="noimg">{{ slot.name[:1] }}</div>
+            {% endif %}
+            <div class="slot-name">{{ slot.name }}{% if slot.exchange %}<span class="tag-exchange">兑换</span>{% endif %}</div>
+            {% if slot.condition %}
+              <div class="cond" style="background: {{ slot.condition_color }}">{{ slot.condition }}</div>
+            {% endif %}
+            <div class="slot-stat">战备 {{ slot.readiness }} ｜ 花 {{ slot.price }}</div>
+          </div>
+          {% else %}
+          <div class="slot empty">
+            <div class="slot-label">空</div>
+            <div class="noimg">—</div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="weapons">
+        {% for w in weapons %}
+        <div class="weapon">
+          <div class="weapon-head">
+            <span class="weapon-label">{{ w.label }}</span>
+            {% if w.img_url %}<img src="{{ w.img_url }}" alt="{{ w.name }}">{% endif %}
+            <span class="weapon-name">{{ w.name }}{% if w.exchange %}<span class="tag-exchange">兑换</span>{% endif %}</span>
+            {% if w.readiness %}<span class="weapon-stat">战备 {{ w.readiness }} ｜ 花 {{ w.price }}</span>{% endif %}
+          </div>
+          <div class="attachments">
+            {% for a in w.attachments %}
+              <span class="att{% if a == '无需配件' %} none{% endif %}">{{ '· ' if a != '无需配件' else '' }}{{ a }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="totals">
+        总战备 {{ total_readiness }} ｜ 花费 <span class="price">{{ total_price }}</span>
+        {% if saved_text %} ｜ <span class="saved">{{ saved_text }}</span>{% endif %}
+      </div>
+      {% if alternatives %}
+      <div class="alts">其他思路：{{ alternatives | join('　／　') }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</body>
+</html>

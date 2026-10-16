@@ -25,12 +25,16 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: "8099"
+      # 卡片渲染用的系统 Chromium（镜像内 apt 安装）
+      RENDER_CHROMIUM_PATH: /usr/bin/chromium
     ports:
       # 只绑定回环：同网络内的 NapCat 通过 ws://bot:8099 访问，无需暴露到公网
       - "127.0.0.1:8099:8099"
     volumes:
-      # 档位/别名配置挂到容器里：改完 tiers.json 重启容器即生效，不必重新构建
+      # 档位/别名配置挂到容器里：改完 gates.json 重启容器即生效，不必重新构建
       - ./config:/app/config:ro
+      # 图片资源（装备图/背景图）由本机直传，挂载进容器；换图只需重启
+      - ./assets:/app/assets:ro
     logging:
       driver: json-file
       options:

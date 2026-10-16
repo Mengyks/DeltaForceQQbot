@@ -7,10 +7,13 @@ from __future__ import annotations
 
 import logging
 
+from deltaforce_bot.adapters.cache import SingleFlight, TTLCache
 from deltaforce_bot.adapters.orzice import OrziceClient
 from deltaforce_bot.adapters.ratelimit import SlidingWindowLimiter
 from deltaforce_bot.config import Settings, get_settings
 from deltaforce_bot.models.gate import GateConfig, load_gate_config
+from deltaforce_bot.render.assets import AssetLibrary
+from deltaforce_bot.render.renderer import CardRenderer
 from deltaforce_bot.services.gear_loadout import GearLoadoutService
 
 logger = logging.getLogger(__name__)
@@ -25,6 +28,15 @@ class Runtime:
         self.user_limiter = SlidingWindowLimiter(settings.rate_limit_user)
         self.group_limiter = SlidingWindowLimiter(settings.rate_limit_group)
         self.debug_groups = settings.debug_group_set
+        # 图片卡片：资源索引常驻，浏览器实例按需启动（第一次渲染时）
+        self.assets = AssetLibrary(settings.assets_dir)
+        self.renderer = (
+            CardRenderer(timeout=settings.render_timeout, chromium_path=settings.render_chromium_path)
+            if settings.render_enabled
+            else None
+        )
+        self.image_cache: TTLCache = TTLCache()  # 键→PNG，发送成功后才写入
+        self.render_flight = SingleFlight()  # 并发查同一档位时只渲染一次
         if not settings.orzice_token:
             logger.warning("未配置 ORZICE_TOKEN，数据源请求将直接失败（请检查 .env）")
 
@@ -32,6 +44,8 @@ class Runtime:
         return group_id is not None and group_id in self.debug_groups
 
     async def aclose(self) -> None:
+        if self.renderer is not None:
+            await self.renderer.close()
         await self.client.aclose()
         logger.info(
             "数据源统计：请求 %s 次，缓存命中 %s 次，今日消耗 %s/%s 次资源",

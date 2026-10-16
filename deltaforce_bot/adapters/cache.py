@@ -33,6 +33,15 @@ class TTLCache:
         if ttl <= 0:
             return
         self._data[key] = (self._time() + ttl, value)
+        self.purge_expired()
+
+    def purge_expired(self) -> int:
+        """清掉已过期项并释放引用（图片等大对象靠它及时回收）。返回清理条数。"""
+        now = self._time()
+        expired = [key for key, (expire_at, _) in self._data.items() if now >= expire_at]
+        for key in expired:
+            self._data.pop(key, None)
+        return len(expired)
 
     def clear(self) -> None:
         self._data.clear()

@@ -49,13 +49,20 @@ DEFAULT_EXCLUDES = {
 }
 SKIP_SUFFIXES = {".pyc", ".pyo", ".log", ".db", ".sqlite3"}
 SKIP_NAMES = {".DS_Store", "Thumbs.db", "desktop.ini"}
+# 上传时跳过的相对路径前缀（本地预览产物、原型图）
+SKIP_PREFIXES = ("assets/_preview", "assets/items/html_prototype")
 
 
-def should_skip(rel: Path, *, exclude_tests: bool) -> bool:
+def should_skip(rel: Path, *, exclude_tests: bool, skip_assets: bool = False) -> bool:
     parts = set(rel.parts)
     if parts & DEFAULT_EXCLUDES:
         return True
     if rel.name in SKIP_NAMES or rel.suffix in SKIP_SUFFIXES:
+        return True
+    rel_posix = rel.as_posix()
+    if any(rel_posix.startswith(prefix) for prefix in SKIP_PREFIXES):
+        return True
+    if skip_assets and rel_posix.startswith("assets/"):
         return True
     if any(part.endswith(".egg-info") for part in rel.parts):
         return True
@@ -64,12 +71,12 @@ def should_skip(rel: Path, *, exclude_tests: bool) -> bool:
     return False
 
 
-def iter_files(*, exclude_tests: bool):
+def iter_files(*, exclude_tests: bool, skip_assets: bool = False):
     for path in sorted(PROJECT_ROOT.rglob("*")):
         if path.is_dir():
             continue
         rel = path.relative_to(PROJECT_ROOT)
-        if should_skip(rel, exclude_tests=exclude_tests):
+        if should_skip(rel, exclude_tests=exclude_tests, skip_assets=skip_assets):
             continue
         yield path, rel
 
@@ -159,7 +166,7 @@ def upload(client: paramiko.SSHClient, args) -> int:
     count = 0
     total_bytes = 0
     client.exec_command  # noqa: B018  （避免误用）
-    for local, rel in iter_files(exclude_tests=args.exclude_tests):
+    for local, rel in iter_files(exclude_tests=args.exclude_tests, skip_assets=args.skip_assets):
         remote = posixpath.join(args.path, rel.as_posix())
         remote_dir = posixpath.dirname(remote)
         try:
@@ -199,6 +206,7 @@ def main() -> None:
     parser.add_argument("--no-upload", action="store_true")
     parser.add_argument("--no-up", action="store_true", help="只上传不启动")
     parser.add_argument("--exclude-tests", action="store_true", help="不上传 tests/（服务器上不需要跑测试时）")
+    parser.add_argument("--skip-assets", action="store_true", help="跳过 assets/（图片资源 55MB，只在图片变动时才需要传）")
     parser.add_argument("--service", default="bot", help="docker compose 启动的服务名，默认只起 bot")
     parser.add_argument("--cmd", help="只在服务器上执行一条命令后退出（排查问题用）")
     parser.add_argument("--put", nargs=2, metavar=("LOCAL", "REMOTE"), help="上传单个文件：--put 本地路径 服务器路径")

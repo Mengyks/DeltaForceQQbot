@@ -49,6 +49,14 @@ class Settings(BaseSettings):
     # 卡战备入口配置（地图 + 难度 → 接口档位）
     gates_config: Path = PROJECT_ROOT / "config" / "gates.json"
 
+    # 图片卡片渲染
+    render_enabled: bool = True  # 渲染失败会自动降级回文字版
+    assets_dir: Path = PROJECT_ROOT / "assets" / "items"
+    render_timeout: float = 6.0
+    # 容器内用 apt 安装的系统 Chromium；本地 Windows 留空会自动尝试 Edge/Chrome
+    render_chromium_path: str = ""
+    image_cache_ttl: int = 14400  # 图片缓存 4 小时（发送成功后才写入）
+
     @property
     def debug_group_set(self) -> set[int]:
         ids: set[int] = set()

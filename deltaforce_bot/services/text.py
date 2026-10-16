@@ -233,6 +233,13 @@ def humanize_duration(seconds: float) -> str:
     return f"{seconds / 3600:.1f} 小时"
 
 
+def format_cache_note(cache_age: float | None) -> str:
+    """缓存新鲜度提示（超过 90 秒才提示，避免污染正常回复）。"""
+    if cache_age is None or cache_age < 90:
+        return ""
+    return f"（{humanize_duration(cache_age)}前的缓存）"
+
+
 def format_source_time(text: str | None) -> str | None:
     """数据源的时间戳 '2026-10-15 18:30:39' → 当天只显示 '18:30'，跨天显示 '10-15 18:30'。"""
     if not text:
@@ -310,8 +317,7 @@ def format_gate_result(result: GateResult, *, top: int = 3) -> str:
     source_time = format_source_time(result.updated_at)
     if source_time:
         header += f" ｜ 数据源 {source_time}"
-    if result.cache_age is not None and result.cache_age >= 90:
-        header += f"（{humanize_duration(result.cache_age)}前的缓存）"
+    header += format_cache_note(result.cache_age)
     lines = [header]
 
     if result.best is None:

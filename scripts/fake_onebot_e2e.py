@@ -19,6 +19,26 @@ SELF_ID = 10000
 GROUP_ID = 30000
 
 
+def summarize(message) -> str:
+    """把 OneBot 消息段转成一行摘要：图片只显示类型与体积，不打印 base64。"""
+    if isinstance(message, str):
+        return message
+    parts: list[str] = []
+    for segment in message or []:
+        if not isinstance(segment, dict):
+            parts.append(str(segment))
+            continue
+        if segment.get("type") == "image":
+            data = str(segment.get("data", {}).get("file", ""))
+            kind = data.split(":", 1)[0] if ":" in data else "?"
+            parts.append(f"[图片 {kind}，{len(data)} 字符]")
+        elif segment.get("type") == "text":
+            parts.append(str(segment.get("data", {}).get("text", "")))
+        else:
+            parts.append(f"[{segment.get('type')}]")
+    return " ".join(parts)
+
+
 def group_message_event(text: str, index: int) -> dict:
     user_id = 20000 + index
     return {
@@ -76,7 +96,7 @@ async def run(uri: str, texts: list[str], timeout: float, token: str = "") -> in
             if message.get("action") in {"send_msg", "send_group_msg", "send_private_msg"}:
                 received += 1
                 print("-" * 60)
-                print(message["params"].get("message"))
+                print(summarize(message["params"].get("message")))
                 print("-" * 60)
                 await ws.send(
                     json.dumps(

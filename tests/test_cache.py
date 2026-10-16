@@ -37,6 +37,23 @@ def test_expires_at_ttl() -> None:
     assert len(cache) == 0
 
 
+def test_purge_expired_releases_entries() -> None:
+    """过期项必须被主动清理（图片缓存是内存里的大对象）。"""
+    clock = FakeClock()
+    cache = TTLCache(time_fn=clock)
+    cache.set("a", b"x" * 1024, ttl=10)
+    cache.set("b", b"y" * 1024, ttl=100)
+    assert len(cache) == 2
+
+    clock.now = 50
+    assert cache.purge_expired() == 1     # a 已过期
+    assert len(cache) == 1
+
+    clock.now = 200
+    assert cache.purge_expired() == 1     # b 也过期
+    assert len(cache) == 0
+
+
 def test_can_cache_none_value() -> None:
     cache = TTLCache()
     cache.set("k", None, ttl=5)
