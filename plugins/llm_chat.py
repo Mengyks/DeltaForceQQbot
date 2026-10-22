@@ -16,7 +16,7 @@ import time
 
 import nonebot
 from nonebot import on_message
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageSegment
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from nonebot.message import event_preprocessor
 from nonebot.rule import Rule
 
@@ -118,6 +118,26 @@ def _image_refs(event: GroupMessageEvent) -> tuple[IncomingImage, ...]:
     return tuple(images)
 
 
+def _reply_text(event: GroupMessageEvent) -> str:
+    reply = getattr(event, "reply", None)
+    message = getattr(reply, "message", None) if reply else None
+    if message is None:
+        return ""
+    try:
+        text = (message.extract_plain_text() or "").strip()
+        if not text:
+            return ""
+        sender = getattr(reply, "sender", None)
+        name = (
+            getattr(sender, "card", None)
+            or getattr(sender, "nickname", None)
+            or str(getattr(sender, "user_id", ""))
+        )
+        return f"{name}: {text}"[:120] if name else text[:120]
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def _build_meta(
     event: GroupMessageEvent,
     text: str,
@@ -132,6 +152,7 @@ def _build_meta(
         timestamp=float(event.time or time.time()),
         addressed=_is_addressed(event, text),
         reply_to_bot=_reply_to_bot(event),
+        reply_text=_reply_text(event),
         images=images,
         is_command=_is_command(text),
         is_bot=_is_bot_event(event),
@@ -279,12 +300,9 @@ async def handle_chat(event: GroupMessageEvent) -> None:
         chunks = ["嗯嗯"]
 
     try:
-        for index, chunk in enumerate(chunks):
-            if index == 0:
-                message = MessageSegment.reply(event.message_id) + MessageSegment.text(chunk)
-            else:
-                message = Message(MessageSegment.text(chunk))
-            await chat_matcher.send(message)
+        # 不使用 QQ 的“引用回复”：直接发文本，避免视觉上回到错误的人
+        for chunk in chunks:
+            await chat_matcher.send(chunk)
     except Exception as exc:  # noqa: BLE001
         logger.warning("发送聊天回复失败：%s: %s", exc.__class__.__name__, exc)
         return

@@ -4,8 +4,8 @@
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
-**当前状态：v0.3.1** —— v1 卡战备与 v2 群聊机器人均已上线；卡战备以**图片卡片**形式在真实 QQ 群服务中，
-186 个自动化测试通过；代码已推送 GitHub（tag `v0.3.1`），线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
+**当前状态：v0.3.2** —— v1 卡战备与 v2 群聊机器人均已上线；卡战备以**图片卡片**形式在真实 QQ 群服务中，
+187 个自动化测试通过；代码已推送 GitHub（tag `v0.3.2`），线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
 下一步：观察群聊表现并按需调整 `CHAT_*` 参数（见 [docs/06](docs/06-LLM群聊机器人.md)）。
 
 ## 已实现的功能（v1）
@@ -82,7 +82,7 @@
 py -3.13 -m venv .venv                                # 需要 Python 3.13
 .venv/Scripts/python.exe -m pip install -e ".[dev]"
 cp .env.example .env                                  # 填 ORZICE_TOKEN
-.venv/Scripts/python.exe -m pytest -q                 # 186 个测试
+.venv/Scripts/python.exe -m pytest -q                 # 187 个测试
 .venv/Scripts/python.exe bot.py                       # 默认监听 127.0.0.1:8099
 ```
 
@@ -184,6 +184,7 @@ LLM_MODEL=deepseek-flash
   窗口内最多 10 次、间隔至少 3 秒。
 - 默认开启“主动参与”：没有 @ 的群聊，只要距离上次回复超过 30 秒也会接话，避免只有在被 @ 时才出现；
   可用 `CHAT_AMBIENT_ENABLED=false` 关掉。
+- 聊天直接发纯文本，不使用 QQ 的引用回复；当前消息若是在回复别人，会把被回复内容带进上下文。
 - 群消息写入 `data/chat.sqlite3` 作为群共享上下文，默认保留 7 天。
 - `@bot 上下文清理 提取摘要` / `@bot 上下文清理 直接清理` 仅 `SUPERUSERS` 可用。
 - 人设写 `config/persona.md`，修改后自动热加载。
@@ -225,7 +226,7 @@ DeltaForceQQbot/
 ├── plugins/gear_loadout.py       # 卡战备入口
 ├── plugins/llm_chat.py           # 群聊机器人入口（记录器/聊天/清理指令）
 ├── scripts/                      # 联调与运维脚本
-├── tests/                        # 186 个用例，含真实响应契约测试
+├── tests/                        # 187 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档
 ```
 

@@ -32,6 +32,7 @@ class ChatIncoming:
     timestamp: float
     addressed: bool = False
     reply_to_bot: bool = False
+    reply_text: str = ""
     images: tuple[IncomingImage, ...] = ()
     is_command: bool = False
     is_bot: bool = False

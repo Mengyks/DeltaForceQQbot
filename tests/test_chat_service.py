@@ -46,6 +46,7 @@ def make_meta(
     message_id: int = 1,
     addressed: bool = True,
     reply_to_bot: bool = False,
+    reply_text: str = "",
     images: tuple[IncomingImage, ...] = (),
     is_command: bool = False,
     is_bot: bool = False,
@@ -59,6 +60,7 @@ def make_meta(
         timestamp=1000.0,
         addressed=addressed,
         reply_to_bot=reply_to_bot,
+        reply_text=reply_text,
         images=images,
         is_command=is_command,
         is_bot=is_bot,
@@ -325,6 +327,21 @@ async def test_ambient_mode_joins_without_mention(tmp_path) -> None:
             ),
             now=now[0] + 31,
         )
+    finally:
+        await service.aclose()
+        memory.close()
+
+
+async def test_reply_target_is_included_in_prompt(tmp_path) -> None:
+    service, memory, fake = make_service(tmp_path)
+    try:
+        await service.handle(
+            make_meta(text="确实", reply_text="鸣潮真好玩", message_id=1)
+        )
+        assert fake.calls[-1][-1] == {
+            "role": "user",
+            "content": "甲（回复：鸣潮真好玩）: 确实",
+        }
     finally:
         await service.aclose()
         memory.close()
