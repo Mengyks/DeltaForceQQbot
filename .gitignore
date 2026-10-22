@@ -14,6 +14,10 @@ venv/
 .coverage
 htmlcov/
 
+# ---- 原生部署生成物 ----
+.deploy/
+.playwright/
+
 # ---- NoneBot ----
 # 本地运行产生的缓存与数据（登录态、数据库等一律不提交）
 .cache/
@@ -29,6 +33,7 @@ data/
 # ---- 编辑器 / 系统 ----
 .idea/
 .vscode/
+.zcode/
 *.swp
 Thumbs.db
 desktop.ini

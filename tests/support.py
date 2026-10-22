@@ -52,6 +52,42 @@ def make_settings(**overrides: Any) -> Settings:
     return Settings(**base)
 
 
+def make_chat_settings(tmp_path: Path, **overrides: Any) -> Settings:
+    """聊天测试用的确定性配置（不读真实 .env 的聊天项）。"""
+    base: dict[str, Any] = {
+        "chat_enabled": True,
+        "chat_groups": "30000",
+        "chat_aliases": "",
+        "chat_ignore_qq": "",
+        "chat_db_path": tmp_path / "chat.sqlite3",
+        "chat_persona_file": tmp_path / "persona.md",
+        "chat_max_context_chars": 2000,
+        "chat_max_input_chars": 500,
+        "chat_history_ttl_days": 7,
+        "chat_followup_window": 180,
+        "chat_followup_max_replies": 3,
+        "chat_cooldown": 0,
+        "chat_rate_user": 100,
+        "chat_rate_group": 100,
+        "chat_daily_token_budget": 100_000,
+        "chat_vision_enabled": True,
+        "chat_image_max_bytes": 100_000,
+        "chat_max_images_per_message": 4,
+        "chat_reply_chunk_chars": 1500,
+        "chat_max_reply_chunks": 3,
+        "chat_concurrency": 2,
+        "llm_base_url": "https://llm.test/v1",
+        "llm_api_key": "test-llm-key",
+        "llm_model": "test-model",
+        "llm_timeout": 5.0,
+        "llm_max_output_tokens": 100,
+        "llm_temperature": 0.8,
+        "llm_summary_max_tokens": 100,
+    }
+    base.update(overrides)
+    return make_settings(**base)
+
+
 class FakeClient:
     """替代 OrziceClient：不联网，返回预设 payload 并记录调用参数。"""
 

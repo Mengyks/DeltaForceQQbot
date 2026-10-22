@@ -1,0 +1,28 @@
+[Unit]
+Description=DeltaForce QQ Bot (NoneBot + OneBot v11)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__SERVICE_USER__
+Group=__SERVICE_USER__
+WorkingDirectory=__PROJECT_DIR__
+Environment=PYTHONUNBUFFERED=1
+Environment=HOST=127.0.0.1
+Environment=PORT=8099
+Environment=HOME=/home/__SERVICE_USER__
+Environment=PLAYWRIGHT_BROWSERS_PATH=__PROJECT_DIR__/.playwright
+# 业务配置（ORZICE_TOKEN、DRIVER、SUPERUSERS 等）全部从 .env 注入；
+# 文件缺失时仍能启动，缺 token 会由程序打印告警。
+EnvironmentFile=-__PROJECT_DIR__/.env
+ExecStart=__PROJECT_DIR__/.venv/bin/python __PROJECT_DIR__/bot.py
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillMode=mixed
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

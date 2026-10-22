@@ -37,6 +37,38 @@ class Settings(BaseSettings):
     rate_limit_group: int = 10
     debug_groups: str = ""
 
+    # 群聊机器人（v2）
+    chat_enabled: bool = False
+    chat_groups: str = ""  # 允许聊天的群，英文/中文逗号分隔；为空=关闭
+    chat_aliases: str = ""  # 群里叫它的名字，逗号分隔
+    chat_ignore_qq: str = ""  # 需要忽略的其他机器人/账号 QQ
+    chat_db_path: Path = PROJECT_ROOT / "data" / "chat.sqlite3"
+    chat_persona_file: Path = PROJECT_ROOT / "config" / "persona.md"
+    chat_max_context_chars: int = 6000
+    chat_max_input_chars: int = 2000
+    chat_history_ttl_days: int = 7
+    chat_followup_window: int = 180  # 秒；机器人回复后开启的跟进窗口
+    chat_followup_max_replies: int = 3  # 窗口内最多再回几次（不含开窗那次）
+    chat_cooldown: int = 20  # 秒；窗口内两次回复的最小间隔
+    chat_rate_user: int = 3  # 次/分钟
+    chat_rate_group: int = 20  # 次/分钟
+    chat_daily_token_budget: int = 200_000
+    chat_vision_enabled: bool = True
+    chat_image_max_bytes: int = 8 * 1024 * 1024
+    chat_max_images_per_message: int = 4
+    chat_reply_chunk_chars: int = 1500
+    chat_max_reply_chunks: int = 3
+    chat_concurrency: int = 3
+
+    # LLM（OpenAI 兼容接口）
+    llm_base_url: str = "https://api.deepseek.com/v1"
+    llm_api_key: str = ""
+    llm_model: str = "deepseek-flash"
+    llm_timeout: float = 60.0
+    llm_max_output_tokens: int = 800
+    llm_temperature: float = 0.8
+    llm_summary_max_tokens: int = 500
+
     # 掉线监控与告警（见 watchdog.py）
     alert_qq: str = ""  # 接收掉线/恢复通知的管理员 QQ，英文逗号分隔
     alert_webhook_url: str = ""  # 可选：外部告警地址（Server酱/飞书/钉钉/通用 JSON）
@@ -65,6 +97,46 @@ class Settings(BaseSettings):
             if part.isdigit():
                 ids.add(int(part))
         return ids
+
+    @staticmethod
+    def _parse_ints(value: str) -> set[int]:
+        ids: set[int] = set()
+        for part in (value or "").replace("，", ",").split(","):
+            part = part.strip()
+            if part.isdigit():
+                ids.add(int(part))
+        return ids
+
+    @property
+    def chat_group_set(self) -> set[int]:
+        return self._parse_ints(self.chat_groups)
+
+    @property
+    def chat_alias_list(self) -> list[str]:
+        aliases: list[str] = []
+        for part in (self.chat_aliases or "").replace("，", ",").split(","):
+            alias = part.strip()
+            if alias and alias not in aliases:
+                aliases.append(alias)
+        return aliases
+
+    @property
+    def chat_ignore_qq_set(self) -> set[str]:
+        return {
+            part.strip()
+            for part in (self.chat_ignore_qq or "").replace("，", ",").split(",")
+            if part.strip()
+        }
+
+    @property
+    def chat_ready(self) -> bool:
+        return bool(
+            self.chat_enabled
+            and self.chat_group_set
+            and self.llm_api_key
+            and self.llm_base_url
+            and self.llm_model
+        )
 
 
 @lru_cache

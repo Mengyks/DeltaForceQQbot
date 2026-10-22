@@ -7,6 +7,8 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.deploy/
+.playwright/
 
 # 密钥与本地数据绝不进镜像
 .env
@@ -26,5 +28,6 @@ scripts/
 docs/
 .git/
 .gitignore
+.zcode/
 .idea/
 .vscode/
