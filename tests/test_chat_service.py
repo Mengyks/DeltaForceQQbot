@@ -291,3 +291,40 @@ async def test_runtime_wires_chat_when_enabled(tmp_path) -> None:
         assert not runtime.chat.is_chat_group(40000)
     finally:
         await runtime.aclose()
+
+
+async def test_ambient_mode_joins_without_mention(tmp_path) -> None:
+    settings = make_chat_settings(
+        tmp_path,
+        chat_ambient_enabled=True,
+        chat_ambient_cooldown=30,
+        chat_ambient_min_chars=2,
+        chat_followup_window=0,
+        chat_cooldown=0,
+    )
+    service, memory, _ = make_service(tmp_path, settings=settings)
+    now = [1000.0]
+    service._clock = lambda: now[0]  # type: ignore[attr-defined]
+    try:
+        meta = make_meta(addressed=False, text="今天好累", message_id=1)
+        assert service.should_respond(meta, now=now[0])
+        await service.commit_reply(meta, "歇会儿", now=now[0])
+
+        # 没有窗口，但有主动参与冷却
+        assert not service.should_respond(meta, now=now[0] + 10)
+        assert service.should_respond(meta, now=now[0] + 31)
+
+        # 太短的消息不主动插话；图片可以
+        assert not service.should_respond(make_meta(addressed=False, text="6", message_id=2), now=now[0] + 31)
+        assert service.should_respond(
+            make_meta(
+                addressed=False,
+                text="",
+                message_id=3,
+                images=(IncomingImage(data=b"\x89PNG\r\n\x1a\nx", mime="image/png"),),
+            ),
+            now=now[0] + 31,
+        )
+    finally:
+        await service.aclose()
+        memory.close()

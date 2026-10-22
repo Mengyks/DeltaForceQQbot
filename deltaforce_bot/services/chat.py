@@ -129,6 +129,7 @@ class ChatService:
         self._clock = clock
         self._persona = PersonaStore(getattr(settings, "chat_persona_file", "config/persona.md"))
         self._windows: dict[int, _Window] = {}
+        self._last_reply_at: dict[int, float] = {}
         self._locks: dict[int, asyncio.Lock] = {}
         self._budget_notice_at: dict[int, float] = {}
         self._semaphore = asyncio.Semaphore(max(int(getattr(settings, "chat_concurrency", 3)), 1))
@@ -170,20 +171,38 @@ class ChatService:
         if not self.available:
             return False
         current = self._clock() if now is None else now
-        window = self._windows.get(meta.group_id)
+        if self._window_allows(meta.group_id, current):
+            return True
+        return self._ambient_allows(meta, current)
+
+    def _window_allows(self, group_id: int, current: float) -> bool:
+        window = self._windows.get(group_id)
         if window is None or window.until <= current:
             return False
-        max_replies = int(getattr(self._settings, "chat_followup_max_replies", 3))
+        max_replies = int(getattr(self._settings, "chat_followup_max_replies", 10))
         if window.replies >= max_replies:
             return False
-        cooldown = float(getattr(self._settings, "chat_cooldown", 20))
+        cooldown = float(getattr(self._settings, "chat_cooldown", 3))
         return current - window.last_reply_at >= cooldown
+
+    def _ambient_allows(self, meta: ChatIncoming, current: float) -> bool:
+        if not getattr(self._settings, "chat_ambient_enabled", True):
+            return False
+        min_chars = int(getattr(self._settings, "chat_ambient_min_chars", 2))
+        if not meta.images and len((meta.text or "").strip()) < min_chars:
+            return False
+        cooldown = float(getattr(self._settings, "chat_ambient_cooldown", 30))
+        last = self._last_reply_at.get(meta.group_id, 0.0)
+        return current - last >= cooldown
 
     def trigger_reason(self, meta: ChatIncoming, *, now: float | None = None) -> str:
         if meta.addressed or meta.reply_to_bot:
             return "addressed"
-        if self.should_respond(meta, now=now):
+        current = self._clock() if now is None else now
+        if self._window_allows(meta.group_id, current):
             return "followup"
+        if self.is_chat_group(meta.group_id) and self._ambient_allows(meta, current):
+            return "ambient"
         return ""
 
     # ---- 记录上下文 ----
@@ -275,7 +294,7 @@ class ChatService:
             )
         except Exception as exc:  # noqa: BLE001  记账失败不能吞掉已生成的回复
             logger.warning("写入 token 用量失败：%s: %s", exc.__class__.__name__, exc)
-        trigger = "addressed" if (meta.addressed or meta.reply_to_bot) else "followup"
+        trigger = self.trigger_reason(meta, now=now) or "followup"
         logger.info(
             "聊天回复：group=%s user=%s trigger=%s context=%s images=%s tokens=%s/%s %.2fs",
             meta.group_id,
@@ -411,22 +430,22 @@ class ChatService:
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning("写入机器人回复失败：%s: %s", exc.__class__.__name__, exc)
+        self._last_reply_at[meta.group_id] = current
         self._note_reply(meta, current)
 
     def _note_reply(self, meta: ChatIncoming, now: float) -> None:
-        window_seconds = float(getattr(self._settings, "chat_followup_window", 180))
+        window_seconds = float(getattr(self._settings, "chat_followup_window", 300))
         if window_seconds <= 0:
             return
         direct = meta.addressed or meta.reply_to_bot
-        if direct:
+        state = self._windows.get(meta.group_id)
+        if direct or state is None or state.until <= now:
+            # @ 回复、主动参与、窗口过期后的第一次回复都重新开窗
             self._windows[meta.group_id] = _Window(
                 until=now + window_seconds,
                 replies=0,
                 last_reply_at=now,
             )
-            return
-        state = self._windows.get(meta.group_id)
-        if state is None or state.until <= now:
             return
         state.replies += 1
         state.until = now + window_seconds
@@ -507,6 +526,7 @@ class ChatService:
         async with lock:
             deleted = await asyncio.to_thread(self._memory.clear, group_id)
         self._windows.pop(group_id, None)
+        self._last_reply_at.pop(group_id, None)
         logger.info("群聊上下文已清理：group=%s messages=%s", group_id, deleted)
         return deleted
 

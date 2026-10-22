@@ -8,7 +8,9 @@
 - **只开群聊**：只处理 `GroupMessageEvent`；私聊不进入聊天。
 - **群白名单**：`CHAT_GROUPS`；为空或 `CHAT_ENABLED=false` 时聊天完全关闭。
 - **立即触发**：任意位置的 @机器人、引用机器人消息、文本包含 `CHAT_ALIASES` 任一项。
-- **跟进窗口**：机器人成功回复后开 `CHAT_FOLLOWUP_WINDOW=180` 秒窗口；窗口内所有人类群消息都可以触发，最多再回 `CHAT_FOLLOWUP_MAX_REPLIES=3` 次，两次至少间隔 `CHAT_COOLDOWN=20` 秒。达到上限要重新 @。
+- **跟进窗口**：机器人成功回复后开 `CHAT_FOLLOWUP_WINDOW=300` 秒窗口；窗口内所有人类群消息都可以触发，最多再回 `CHAT_FOLLOWUP_MAX_REPLIES=10` 次，两次至少间隔 `CHAT_COOLDOWN=3` 秒。
+- **主动参与（ambient）**：默认开启。即使没有 @、也没有窗口，只要距离机器人在该群上次回复超过 `CHAT_AMBIENT_COOLDOWN=30` 秒，任何正常长度的群消息都可以触发它接话；太短的消息（默认少于 2 个字，如“6”“嗯”）不会触发，图片消息可以。可用 `CHAT_AMBIENT_ENABLED=false` 关闭。
+- **窗口按群独立**：在 A 群 @ 开窗不会让 B 群自动跟进；B 群靠 ambient 模式参与。
 - **忽略**：`卡战备`/`凑战备`/`上下文清理` 命令、机器人自己、`CHAT_IGNORE_QQ` 里的账号、空消息。
 - **群共享上下文**：所有白名单群的人类消息会写入 SQLite，供下一次 @/跟进回复时参考；不是只记录被 @ 的消息。
 - **图片/表情包**：当前消息里的 `image`/`mface` 会尽量下载并作为 `image_url` 发给模型；下载失败降级成文字 `[图片]`。历史消息只保存 `[图片]` 占位，不保存图片字节。
@@ -45,10 +47,13 @@ LLM_MODEL=deepseek-flash
 
 | 变量 | 默认 | 说明 |
 | --- | --- | --- |
-| `CHAT_FOLLOWUP_WINDOW` | 180 | 跟进窗口秒数 |
-| `CHAT_FOLLOWUP_MAX_REPLIES` | 3 | 窗口内最多再回几次 |
-| `CHAT_COOLDOWN` | 20 | 窗口内两次回复的最小间隔 |
-| `CHAT_RATE_USER` / `CHAT_RATE_GROUP` | 3 / 20 | 每分钟限流；`DEBUG_GROUPS` 内免限流 |
+| `CHAT_FOLLOWUP_WINDOW` | 300 | 跟进窗口秒数 |
+| `CHAT_FOLLOWUP_MAX_REPLIES` | 10 | 窗口内最多再回几次 |
+| `CHAT_COOLDOWN` | 3 | 窗口内两次回复的最小间隔 |
+| `CHAT_AMBIENT_ENABLED` | true | 没有 @/窗口时是否主动参与 |
+| `CHAT_AMBIENT_COOLDOWN` | 30 | 两次主动参与之间的最小间隔 |
+| `CHAT_AMBIENT_MIN_CHARS` | 2 | 主动参与时忽略更短的消息 |
+| `CHAT_RATE_USER` / `CHAT_RATE_GROUP` | 10 / 30 | 每分钟限流；`DEBUG_GROUPS` 内免限流 |
 | `CHAT_MAX_CONTEXT_CHARS` | 6000 | 送进模型的历史字符预算 |
 | `CHAT_MAX_INPUT_CHARS` | 2000 | 单条用户消息截断上限 |
 | `CHAT_DAILY_TOKEN_BUDGET` | 200000 | 每日 token 上限；超限停止调用 |
@@ -97,14 +102,16 @@ journalctl -u deltaforce-bot -n 100 --no-pager
 
 1. 测试群 @机器人 说一句话 → 应结合群上下文回复；
 2. 不 @ 继续说话（窗口内）→ 按配置继续回，直到次数/冷却限制；
-3. 发图片/表情包 → 模型能描述或接梗；
-4. 非 `SUPERUSERS` 执行清理 → 被拒绝；
-5. `SUPERUSERS` 执行 `提取摘要`/`直接清理` → 生效；
-6. 卡战备命令仍然正常，且不会被聊天模型接管。
+3. 完全没有 @ 时，等 ambient 冷却结束后发正常消息 → 也应主动接话；
+4. 发图片/表情包 → 模型能描述或接梗；
+5. 非 `SUPERUSERS` 执行清理 → 被拒绝；
+6. `SUPERUSERS` 执行 `提取摘要`/`直接清理` → 生效；
+7. 卡战备命令仍然正常，且不会被聊天模型接管。
 
 ## 7. 已知限制
 
-- 跟进窗口状态在内存里，服务重启后需要重新 @ 才会开窗；聊天记录本身持久化。
+- 跟进窗口和 ambient 冷却状态在内存里，服务重启后窗口清空；ambient 仍可在 30 秒后接话，聊天记录本身持久化。
+- ambient 默认比较主动；如果觉得话太多，把 `CHAT_AMBIENT_COOLDOWN` 调大或 `CHAT_AMBIENT_ENABLED=false`。
 - 其他机器人默认不会被识别，需要把它们的 QQ 填到 `CHAT_IGNORE_QQ`。
 - 图片下载失败、模型不支持图片或图片过大时会降级为文字，不保证每张表情包都能识别。
 - 摘要为手动指令，不会自动压缩；超过上下文预算时只截断更早的消息。
