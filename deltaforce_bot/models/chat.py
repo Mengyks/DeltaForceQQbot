@@ -47,6 +47,8 @@ class ChatReply:
     completion_tokens: int = 0
     model: str = ""
     trigger: str = ""
+    images: tuple[bytes, ...] = ()
+    meme_category: str = ""
 
 
 @dataclass(frozen=True)

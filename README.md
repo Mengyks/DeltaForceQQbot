@@ -4,9 +4,9 @@
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
-**当前状态：v0.4.0** —— v1 卡战备与 v2 群聊机器人均已上线；卡战备以**图片卡片**形式在真实 QQ 群服务中，
-187 个自动化测试通过；代码已推送 GitHub（tag `v0.4.0`），线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
-下一步：接入简单网络搜索 + 本地表情包工具（见 [docs/06](docs/06-LLM群聊机器人.md)）。
+**当前状态：v0.5.0** —— v1 卡战备与 v2 群聊机器人均已上线；卡战备以**图片卡片**形式在真实 QQ 群服务中，
+195 个自动化测试通过；代码已推送 GitHub（tag `v0.5.0`），线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
+下一步：观察本地表情包接梗效果并调整分类/频率（见 [docs/06](docs/06-LLM群聊机器人.md)）。
 
 ## 已实现的功能（v1）
 
@@ -82,7 +82,7 @@
 py -3.13 -m venv .venv                                # 需要 Python 3.13
 .venv/Scripts/python.exe -m pip install -e ".[dev]"
 cp .env.example .env                                  # 填 ORZICE_TOKEN
-.venv/Scripts/python.exe -m pytest -q                 # 187 个测试
+.venv/Scripts/python.exe -m pytest -q                 # 195 个测试
 .venv/Scripts/python.exe bot.py                       # 默认监听 127.0.0.1:8099
 ```
 
@@ -178,12 +178,17 @@ SUPERUSERS=["你的QQ号"]          # 只有这里的人能清理上下文
 LLM_BASE_URL=https://api.deepseek.com/v1
 LLM_API_KEY=你的key
 LLM_MODEL=deepseek-flash
+
+CHAT_MEME_ENABLED=true
+CHAT_MEME_DIR=assets/memes
 ```
 
 - 被 @ / 引用机器人 / 叫名字立即回复；否则在机器人上次回复后的 180 秒跟进窗口内继续参与，
   窗口内最多 3 次、间隔至少 20 秒。
 - “主动参与”默认关闭；想让它不 @ 也偶尔接话时，把 `CHAT_AMBIENT_ENABLED=true`（默认间隔 30 秒）。
 - 聊天直接发纯文本，不使用 QQ 的引用回复；当前消息若是在回复别人，会把被回复内容带进上下文。
+- 本地表情包：模型可通过 `send_meme(category)` 从 `assets/memes` 选一张发出来；
+  同群 90 秒冷却、10 分钟最多 3 张，避开最近发过的图。不做网页图片搜索。
 - 群消息写入 `data/chat.sqlite3` 作为群共享上下文，默认保留 7 天。
 - `@bot 上下文清理 提取摘要` / `@bot 上下文清理 直接清理` 仅 `SUPERUSERS` 可用。
 - 人设写 `config/persona.md`，修改后自动热加载。
@@ -219,13 +224,13 @@ DeltaForceQQbot/
 │   ├── config.py                 # .env → Settings
 │   ├── logging_setup.py          # 把标准库 logging 接到 loguru（NoneBot 2.5 不再自动接管）
 │   ├── runtime.py                # 运行时装配（客户端/服务/限流器）
-│   ├── adapters/                 # orzice/LLM 客户端、SQLite、TTL 缓存、限流
+│   ├── adapters/                 # orzice/LLM 客户端、SQLite、本地表情包、TTL 缓存、限流
 │   ├── models/                   # 数据模型（字段语义见 loadout.py 文档）与入口解析
 │   └── services/                 # gear_loadout、chat、commands、text
 ├── plugins/gear_loadout.py       # 卡战备入口
 ├── plugins/llm_chat.py           # 群聊机器人入口（记录器/聊天/清理指令）
 ├── scripts/                      # 联调与运维脚本
-├── tests/                        # 187 个用例，含真实响应契约测试
+├── tests/                        # 195 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档
 ```
 

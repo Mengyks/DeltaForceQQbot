@@ -33,6 +33,8 @@ class LLMResult:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     model: str = ""
+    tool_calls: tuple[dict, ...] = ()
+    assistant_message: dict | None = None
 
 
 class LLMClient:
@@ -67,6 +69,7 @@ class LLMClient:
         *,
         max_tokens: int | None = None,
         temperature: float | None = None,
+        tools: list[dict] | None = None,
     ) -> LLMResult:
         if not self.available:
             raise LLMUnavailable("LLM_BASE_URL / LLM_API_KEY / LLM_MODEL 未配置")
@@ -79,6 +82,9 @@ class LLMClient:
             "temperature": float(self._temperature if temperature is None else temperature),
             "stream": False,
         }
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "auto"
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
@@ -123,12 +129,21 @@ class LLMClient:
             if not choices:
                 raise LLMError("LLM 返回空 choices")
             message = (choices[0] or {}).get("message") or {}
+            tool_calls = tuple(
+                call for call in (message.get("tool_calls") or []) if isinstance(call, dict)
+            )
             text = _content_to_text(message.get("content"))
             if not text:
                 # 少数兼容接口把正文放在 reasoning_content；仅在 content 为空时兜底
                 text = _content_to_text(message.get("reasoning_content"))
-            if not text:
+            if not text and not tool_calls:
                 raise LLMError("LLM 返回空文本")
+            assistant_message = {
+                "role": "assistant",
+                "content": message.get("content"),
+            }
+            if tool_calls:
+                assistant_message["tool_calls"] = list(tool_calls)
 
             usage = data.get("usage") or {}
             return LLMResult(
@@ -136,6 +151,8 @@ class LLMClient:
                 prompt_tokens=_as_int(usage.get("prompt_tokens")),
                 completion_tokens=_as_int(usage.get("completion_tokens")),
                 model=str(data.get("model") or self._model),
+                tool_calls=tool_calls,
+                assistant_message=assistant_message,
             )
 
         raise last_error or LLMError("LLM 请求失败")

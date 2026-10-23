@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import time
+from pathlib import Path
 
 import httpx
 import pytest
 
 from deltaforce_bot.adapters.chat_memory import ChatMemory
 from deltaforce_bot.adapters.llm import LLMError, LLMResult
+from deltaforce_bot.adapters.memes import MemeLibrary
 from deltaforce_bot.adapters.ratelimit import SlidingWindowLimiter
 from deltaforce_bot.models.chat import ChatIncoming, IncomingImage, SummaryResult
 from deltaforce_bot.runtime import Runtime
@@ -67,7 +70,14 @@ def make_meta(
     )
 
 
-def make_service(tmp_path, settings=None, client=None, clock=None, image_http=None) -> tuple[ChatService, ChatMemory, FakeLLM]:
+def make_service(
+    tmp_path,
+    settings=None,
+    client=None,
+    clock=None,
+    image_http=None,
+    memes=None,
+) -> tuple[ChatService, ChatMemory, FakeLLM]:
     tmp_path.mkdir(parents=True, exist_ok=True)
     settings = settings or make_chat_settings(tmp_path)
     (tmp_path / "persona.md").write_text("你是群里的测试机器人。", encoding="utf-8")
@@ -79,6 +89,7 @@ def make_service(tmp_path, settings=None, client=None, clock=None, image_http=No
         memory,
         SlidingWindowLimiter(settings.chat_rate_user),
         SlidingWindowLimiter(settings.chat_rate_group),
+        memes=memes,
         clock=clock or (lambda: 1000.0),
         image_http=image_http,
     )
@@ -342,6 +353,142 @@ async def test_reply_target_is_included_in_prompt(tmp_path) -> None:
             "role": "user",
             "content": "甲（回复：鸣潮真好玩）: 确实",
         }
+    finally:
+        await service.aclose()
+        memory.close()
+
+
+class ToolLLM:
+    available = True
+
+    def __init__(self, results: list[LLMResult]) -> None:
+        self.results = list(results)
+        self.calls: list[list[dict]] = []
+        self.tools: list[object] = []
+
+    async def chat(self, messages, **kwargs) -> LLMResult:
+        self.calls.append(messages)
+        self.tools.append(kwargs.get("tools"))
+        return self.results.pop(0)
+
+
+def make_meme_pack(tmp_path) -> MemeLibrary:
+    root = tmp_path / "pack"
+    (root / "memes" / "happy").mkdir(parents=True)
+    (root / "memes" / "happy" / "a.png").write_bytes(b"\x89PNG\r\n\x1a\n" + b"x" * 20)
+    (root / "manifest.json").write_text(
+        json.dumps({"categories": {"happy": {"description": "开心"}}}),
+        encoding="utf-8",
+    )
+    return MemeLibrary(root)
+
+
+def tool_call(category: str) -> dict:
+    return {
+        "id": "call_1",
+        "type": "function",
+        "function": {
+            "name": "send_meme",
+            "arguments": json.dumps({"category": category}),
+        },
+    }
+
+
+async def test_tool_call_attaches_local_meme(tmp_path) -> None:
+    call = tool_call("happy")
+    llm = ToolLLM(
+        [
+            LLMResult(
+                "",
+                prompt_tokens=10,
+                completion_tokens=2,
+                model="test-model",
+                tool_calls=(call,),
+                assistant_message={"role": "assistant", "content": None, "tool_calls": [call]},
+            ),
+            LLMResult("好耶", prompt_tokens=5, completion_tokens=3, model="test-model"),
+        ]
+    )
+    settings = make_chat_settings(
+        tmp_path,
+        chat_meme_enabled=True,
+        chat_meme_cooldown=0,
+        chat_meme_max_per_10min=10,
+    )
+    service, memory, _ = make_service(
+        tmp_path, settings=settings, client=llm, memes=make_meme_pack(tmp_path)
+    )
+    try:
+        reply = await service.handle(make_meta(text="发个图", message_id=1))
+        assert reply.text == "好耶"
+        assert reply.meme_category == "happy"
+        assert len(reply.images) == 1
+        assert reply.images[0].startswith(b"\x89PNG")
+        assert reply.prompt_tokens == 15
+        assert reply.completion_tokens == 5
+        assert llm.tools[0] is not None
+        assert llm.tools[1] is None
+        assert llm.calls[1][-1]["role"] == "tool"
+        assert '"ok": true' in llm.calls[1][-1]["content"]
+    finally:
+        await service.aclose()
+        memory.close()
+
+
+async def test_tool_call_cooldown_returns_text_without_image(tmp_path) -> None:
+    calls = [tool_call("happy"), tool_call("happy")]
+    llm = ToolLLM(
+        [
+            LLMResult("", tool_calls=(calls[0],), assistant_message={"role": "assistant", "content": None, "tool_calls": [calls[0]]}),
+            LLMResult("第一次", model="test-model"),
+            LLMResult("", tool_calls=(calls[1],), assistant_message={"role": "assistant", "content": None, "tool_calls": [calls[1]]}),
+            LLMResult("第二次", model="test-model"),
+        ]
+    )
+    settings = make_chat_settings(
+        tmp_path,
+        chat_meme_enabled=True,
+        chat_meme_cooldown=90,
+        chat_meme_max_per_10min=10,
+    )
+    service, memory, _ = make_service(
+        tmp_path, settings=settings, client=llm, memes=make_meme_pack(tmp_path)
+    )
+    try:
+        first = await service.handle(make_meta(text="图一", message_id=1))
+        second = await service.handle(make_meta(text="图二", message_id=2))
+        assert first.images
+        assert not second.images
+        assert second.text == "第二次"
+        assert '"ok": false' in llm.calls[3][-1]["content"]
+    finally:
+        await service.aclose()
+        memory.close()
+
+
+async def test_tools_unsupported_falls_back_to_plain_chat(tmp_path) -> None:
+    class NoToolsLLM:
+        available = True
+        calls = 0
+
+        async def chat(self, messages, **kwargs) -> LLMResult:
+            self.calls += 1
+            if kwargs.get("tools"):
+                raise LLMError("LLM 请求失败（HTTP 400）")
+            return LLMResult("普通回复", model="test-model")
+
+    llm = NoToolsLLM()
+    service, memory, _ = make_service(
+        tmp_path,
+        settings=make_chat_settings(tmp_path),
+        client=llm,
+        memes=make_meme_pack(tmp_path),
+    )
+    try:
+        reply = await service.handle(make_meta(text="在吗", message_id=1))
+        assert reply.text == "普通回复"
+        assert not reply.images
+        assert llm.calls == 2
     finally:
         await service.aclose()
         memory.close()

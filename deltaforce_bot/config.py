@@ -63,6 +63,14 @@ class Settings(BaseSettings):
     chat_max_reply_chunks: int = 3
     chat_concurrency: int = 3
 
+    # 本地表情包（LLM 通过工具调用选择分类，服务随机挑一张）
+    chat_meme_enabled: bool = True
+    chat_meme_dir: Path = PROJECT_ROOT / "assets" / "memes"
+    chat_meme_cooldown: int = 90  # 秒；同一群两次发图的最小间隔
+    chat_meme_max_per_10min: int = 3
+    chat_meme_max_bytes: int = 8 * 1024 * 1024
+    chat_meme_recent_exclude: int = 8  # 避开最近发过的 N 张
+
     # LLM（OpenAI 兼容接口）
     llm_base_url: str = "https://api.deepseek.com/v1"
     llm_api_key: str = ""

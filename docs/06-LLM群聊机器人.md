@@ -14,6 +14,7 @@
 - **忽略**：`卡战备`/`凑战备`/`上下文清理` 命令、机器人自己、`CHAT_IGNORE_QQ` 里的账号、空消息。
 - **群共享上下文**：所有白名单群的人类消息会写入 SQLite，供下一次 @/跟进回复时参考；不是只记录被 @ 的消息。
 - **图片/表情包**：当前消息里的 `image`/`mface` 会尽量下载并作为 `image_url` 发给模型；下载失败降级成文字 `[图片]`。历史消息只保存 `[图片]` 占位，不保存图片字节。
+- **本地表情包**：模型可以通过 `send_meme(category)` 工具从 `assets/memes` 里发一张图；分类来自 `manifest.json` 和实际目录。服务会做每群 90 秒冷却、10 分钟最多 3 张、避开最近 8 张；只发本地图，不做网页图片搜索。
 - **长回复**：按段落切成最多 3 段，直接用纯文本发送，不使用 QQ 的“引用回复”功能；发送成功后才写入 assistant 消息并开窗口。
 - **接梗上下文**：如果当前消息是在回复别人的某句话，会把被回复的文本一起带进模型上下文，减少答非所问。
 
@@ -42,6 +43,9 @@ SUPERUSERS=["你的QQ号"]          # JSON 列表；只有这里的人能清理�
 LLM_BASE_URL=https://api.deepseek.com/v1
 LLM_API_KEY=你的key
 LLM_MODEL=deepseek-flash
+
+CHAT_MEME_ENABLED=true
+CHAT_MEME_DIR=assets/memes
 ```
 
 常用可调项：
@@ -62,6 +66,11 @@ LLM_MODEL=deepseek-flash
 | `CHAT_VISION_ENABLED` | true | 是否把当前图片发给模型 |
 | `CHAT_IMAGE_MAX_BYTES` | 8388608 | 单张图最大字节 |
 | `CHAT_MAX_IMAGES_PER_MESSAGE` | 4 | 单条消息最多图片数 |
+| `CHAT_MEME_ENABLED` | true | 是否启用本地表情包工具 |
+| `CHAT_MEME_DIR` | `assets/memes` | 表情包根目录（含 `manifest.json` 和 `memes/`） |
+| `CHAT_MEME_COOLDOWN` | 90 | 同一群两次发图的最小间隔（秒） |
+| `CHAT_MEME_MAX_PER_10MIN` | 3 | 同一群 10 分钟最多发几张 |
+| `CHAT_MEME_RECENT_EXCLUDE` | 8 | 避开最近发过的几张 |
 
 人设写在 `config/persona.md`，文件修改后下一次请求自动重新加载（按 mtime）。
 代码里另有一层硬性规则，防止泄露系统提示、编造事实和输出有害内容。
@@ -99,15 +108,21 @@ export MSYS_NO_PATHCONV=1
 journalctl -u deltaforce-bot -n 100 --no-pager
 ```
 
-启动日志应出现 `群聊机器人已启用：N 个群，模型 ...`。验收：
+启动日志应出现 `群聊机器人已启用：N 个群，模型 ...`，以及
+`本地表情包已加载：N 个分类、M 张图`。验收：
 
 1. 测试群 @机器人 说一句话 → 应结合群上下文回复；
 2. 不 @ 继续说话（窗口内）→ 按配置继续回，直到次数/冷却限制；
 3. 如果开启了 ambient：完全没有 @ 时，等冷却结束后发正常消息 → 应主动接话；
 4. 发图片/表情包 → 模型能描述或接梗；
-5. 非 `SUPERUSERS` 执行清理 → 被拒绝；
-6. `SUPERUSERS` 执行 `提取摘要`/`直接清理` → 生效；
-7. 卡战备命令仍然正常，且不会被聊天模型接管。
+5. 发一句适合配表情的话 → 模型可能调用 `send_meme`，收到一张本地图；
+6. 非 `SUPERUSERS` 执行清理 → 被拒绝；
+7. `SUPERUSERS` 执行 `提取摘要`/`直接清理` → 生效；
+8. 卡战备命令仍然正常，且不会被聊天模型接管。
+
+> 表情包图片不随 `--skip-assets` 上传；需要单独放在服务器
+> `/opt/deltaforce-qqbot/assets/memes`（含 `manifest.json` 和 `memes/`）。
+> 代码更新仍可继续使用 `--skip-assets`。
 
 ## 7. 已知限制
 
@@ -115,5 +130,6 @@ journalctl -u deltaforce-bot -n 100 --no-pager
 - ambient 默认关闭；需要更主动时设 `CHAT_AMBIENT_ENABLED=true`，再通过 `CHAT_AMBIENT_COOLDOWN` 控制频率。
 - 其他机器人默认不会被识别，需要把它们的 QQ 填到 `CHAT_IGNORE_QQ`。
 - 图片下载失败、模型不支持图片或图片过大时会降级为文字，不保证每张表情包都能识别。
+- 本地表情包按分类随机挑选，不精确指定某一张；分类由 manifest/目录决定，分类过少时效果有限。
 - 摘要为手动指令，不会自动压缩；超过上下文预算时只截断更早的消息。
 - 聊天数据是本群共享的；如果群友对聊天记录留存在意，用 `直接清理` 删除。

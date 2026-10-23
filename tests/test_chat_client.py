@@ -129,3 +129,50 @@ async def test_missing_key_is_unavailable(tmp_path) -> None:
     with pytest.raises(LLMUnavailable):
         await client.chat([{"role": "user", "content": "hi"}])
     await client.aclose()
+
+
+async def test_tool_call_response_and_tools_payload(tmp_path) -> None:
+    captured: list[dict] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured.append(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "model": "test-model",
+                "choices": [
+                    {
+                        "message": {
+                            "role": "assistant",
+                            "content": None,
+                            "tool_calls": [
+                                {
+                                    "id": "call_1",
+                                    "type": "function",
+                                    "function": {
+                                        "name": "send_meme",
+                                        "arguments": '{"category":"happy"}',
+                                    },
+                                }
+                            ],
+                        }
+                    }
+                ],
+                "usage": {"prompt_tokens": 20, "completion_tokens": 3},
+            },
+        )
+
+    http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    try:
+        client = LLMClient(make_chat_settings(tmp_path), http=http, retry_delay=0)
+        tools = [{"type": "function", "function": {"name": "send_meme", "parameters": {}}}]
+        result = await client.chat([{"role": "user", "content": "发个图"}], tools=tools)
+
+        assert result.text == ""
+        assert result.tool_calls[0]["function"]["name"] == "send_meme"
+        assert result.assistant_message is not None
+        assert result.assistant_message["tool_calls"]
+        assert captured[0]["tools"] == tools
+        assert captured[0]["tool_choice"] == "auto"
+    finally:
+        await http.aclose()

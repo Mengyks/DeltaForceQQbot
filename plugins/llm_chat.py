@@ -16,7 +16,7 @@ import time
 
 import nonebot
 from nonebot import on_message
-from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
 from nonebot.message import event_preprocessor
 from nonebot.rule import Rule
 
@@ -296,19 +296,29 @@ async def handle_chat(event: GroupMessageEvent) -> None:
         limit=int(getattr(runtime.settings, "chat_reply_chunk_chars", 1500)),
         max_chunks=int(getattr(runtime.settings, "chat_max_reply_chunks", 3)),
     )
-    if not chunks:
+    if not chunks and not reply.images:
         chunks = ["嗯嗯"]
 
+    sent_any = False
     try:
         # 不使用 QQ 的“引用回复”：直接发文本，避免视觉上回到错误的人
         for chunk in chunks:
             await chat_matcher.send(chunk)
+            sent_any = True
+        for image in reply.images:
+            try:
+                await chat_matcher.send(MessageSegment.image(image))
+                sent_any = True
+            except Exception as exc:  # noqa: BLE001  图片失败不影响文字
+                logger.warning("发送表情包失败：%s: %s", exc.__class__.__name__, exc)
     except Exception as exc:  # noqa: BLE001
         logger.warning("发送聊天回复失败：%s: %s", exc.__class__.__name__, exc)
         return
 
+    if not sent_any:
+        return
     # 只在发送成功后写 assistant 消息并打开跟进窗口
-    await chat.commit_reply(meta, reply.text)
+    await chat.commit_reply(meta, reply.text, meme_category=reply.meme_category)
 
 
 # ---------- 上下文清理（仅 SUPERUSERS） ----------

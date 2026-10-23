@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
 import logging
 import mimetypes
 import re
 import time
+from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -19,6 +21,7 @@ import httpx
 
 from deltaforce_bot.adapters.chat_memory import ChatMemory
 from deltaforce_bot.adapters.llm import LLMClient, LLMError, LLMUnavailable
+from deltaforce_bot.adapters.memes import MemeLibrary, MemeSelection
 from deltaforce_bot.models.chat import (
     ChatIncoming,
     ChatReply,
@@ -121,6 +124,7 @@ class ChatService:
         user_limiter,
         group_limiter,
         *,
+        memes: MemeLibrary | None = None,
         clock: Callable[[], float] = time.time,
         image_http: httpx.AsyncClient | None = None,
     ) -> None:
@@ -130,11 +134,15 @@ class ChatService:
         self._user_limiter = user_limiter
         self._group_limiter = group_limiter
         self._clock = clock
+        self._memes = memes
         self._persona = PersonaStore(getattr(settings, "chat_persona_file", "config/persona.md"))
         self._windows: dict[int, _Window] = {}
         self._last_reply_at: dict[int, float] = {}
         self._locks: dict[int, asyncio.Lock] = {}
         self._budget_notice_at: dict[int, float] = {}
+        self._meme_last_at: dict[int, float] = {}
+        self._meme_times: dict[int, deque[float]] = {}
+        self._recent_memes: dict[int, deque[str]] = {}
         self._semaphore = asyncio.Semaphore(max(int(getattr(settings, "chat_concurrency", 3)), 1))
         self._owns_image_http = image_http is None
         self._image_http = image_http or httpx.AsyncClient(
@@ -282,43 +290,140 @@ class ChatService:
         messages = self._build_messages(meta, history, summary, images)
 
         started = self._clock()
+        tools = self._meme_tools()
         try:
-            result = await client.chat(messages)
+            result = await client.chat(messages, tools=tools)
         except LLMUnavailable as exc:
             raise ChatUnavailable(str(exc)) from exc
-        elapsed = max(self._clock() - started, 0.0)
+        except LLMError as exc:
+            if not tools:
+                raise
+            # 兼容不支持 tools 的中转/模型：退回普通聊天
+            logger.warning("工具调用失败，退回普通聊天：%s", exc)
+            result = await client.chat(messages)
 
+        prompt_tokens = result.prompt_tokens
+        completion_tokens = result.completion_tokens
+        meme_image: bytes | None = None
+        meme_category = ""
+
+        if result.tool_calls:
+            messages.append(
+                result.assistant_message
+                or {"role": "assistant", "content": result.text or None, "tool_calls": list(result.tool_calls)}
+            )
+            for index, call in enumerate(result.tool_calls):
+                if index == 0 and meme_image is None:
+                    selection, payload = await self._select_meme(meta.group_id, call, now)
+                    if selection is not None:
+                        meme_image = selection.data
+                        meme_category = selection.category
+                else:
+                    payload = {"ok": False, "reason": "一次回复最多发一张"}
+                call_id = str(call.get("id") or "")
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": call_id,
+                        "content": json.dumps(payload, ensure_ascii=False),
+                    }
+                )
+            final = await client.chat(messages)
+            prompt_tokens += final.prompt_tokens
+            completion_tokens += final.completion_tokens
+            result = final
+
+        text = result.text.strip()
+        if not text and not meme_image:
+            text = "嗯"
+
+        elapsed = max(self._clock() - started, 0.0)
         try:
             await asyncio.to_thread(
                 memory.add_usage,
                 self._day(now),
                 group_id=meta.group_id,
                 user_id=meta.user_id,
-                prompt_tokens=result.prompt_tokens,
-                completion_tokens=result.completion_tokens,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
                 model=result.model,
             )
         except Exception as exc:  # noqa: BLE001  记账失败不能吞掉已生成的回复
             logger.warning("写入 token 用量失败：%s: %s", exc.__class__.__name__, exc)
         trigger = self.trigger_reason(meta, now=now) or "followup"
         logger.info(
-            "聊天回复：group=%s user=%s trigger=%s context=%s images=%s tokens=%s/%s %.2fs",
+            "聊天回复：group=%s user=%s trigger=%s context=%s images=%s memes=%s tokens=%s/%s %.2fs",
             meta.group_id,
             meta.user_id,
             trigger,
             len(history),
             len(images),
-            result.prompt_tokens,
-            result.completion_tokens,
+            1 if meme_image else 0,
+            prompt_tokens,
+            completion_tokens,
             elapsed,
         )
         return ChatReply(
-            text=result.text,
-            prompt_tokens=result.prompt_tokens,
-            completion_tokens=result.completion_tokens,
+            text=text,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
             model=result.model,
             trigger=trigger,
+            images=(meme_image,) if meme_image else (),
+            meme_category=meme_category,
         )
+
+    def _meme_tools(self) -> list[dict] | None:
+        if not getattr(self._settings, "chat_meme_enabled", True):
+            return None
+        if self._memes is None or not self._memes.available:
+            return None
+        return [self._memes.tool_spec()]
+
+    async def _select_meme(
+        self,
+        group_id: int,
+        call: dict,
+        now: float,
+    ) -> tuple[MemeSelection | None, dict]:
+        function = call.get("function") or {}
+        if function.get("name") != "send_meme":
+            return None, {"ok": False, "reason": "未知工具"}
+        try:
+            arguments = function.get("arguments") or "{}"
+            if isinstance(arguments, str):
+                arguments = json.loads(arguments)
+            category = str((arguments or {}).get("category") or "")
+        except (ValueError, TypeError, AttributeError):
+            return None, {"ok": False, "reason": "参数解析失败"}
+        if not category:
+            return None, {"ok": False, "reason": "缺少分类"}
+        if self._memes is None or not self._memes.available:
+            return None, {"ok": False, "reason": "表情包库未启用"}
+
+        cooldown = max(int(getattr(self._settings, "chat_meme_cooldown", 90)), 0)
+        if cooldown and now - self._meme_last_at.get(group_id, 0.0) < cooldown:
+            return None, {"ok": False, "reason": "刚发过图，过一会再发"}
+        max_per_10min = max(int(getattr(self._settings, "chat_meme_max_per_10min", 3)), 0)
+        times = self._meme_times.setdefault(group_id, deque())
+        while times and now - times[0] >= 600:
+            times.popleft()
+        if max_per_10min and len(times) >= max_per_10min:
+            return None, {"ok": False, "reason": "这段时间发图太多了"}
+
+        recent_size = max(int(getattr(self._settings, "chat_meme_recent_exclude", 8)), 1)
+        recent = self._recent_memes.get(group_id)
+        if recent is None:
+            recent = deque(maxlen=recent_size)
+            self._recent_memes[group_id] = recent
+        selection = self._memes.pick(category, avoid=set(recent))
+        if selection is None:
+            return None, {"ok": False, "reason": "没有找到这个分类的图"}
+
+        self._meme_last_at[group_id] = now
+        times.append(now)
+        recent.append(str(selection.path))
+        return selection, {"ok": True, "category": selection.category}
 
     def _build_messages(
         self,
@@ -332,6 +437,13 @@ class ChatService:
         if summary:
             system += f"\n\n[群聊摘要]\n{summary[: max_context // 3]}"
         system += f"\n\n{HARD_RULES}"
+        if self._meme_tools() and self._memes is not None:
+            system += (
+                "\n\n[本地表情包]\n"
+                "你可以在合适的时候调用 send_meme 发一张本地表情包；不是每条都要发，一次最多一张。"
+                "分类说明：\n"
+                f"{self._memes.category_help()}"
+            )
 
         messages: list[dict] = [{"role": "system", "content": system}]
         for item in history:
@@ -422,8 +534,20 @@ class ChatService:
             return None, ""
 
     # ---- 回复提交 / 跟进窗口 ----
-    async def commit_reply(self, meta: ChatIncoming, text: str, *, now: float | None = None) -> None:
-        if self._memory is None or not text.strip():
+    async def commit_reply(
+        self,
+        meta: ChatIncoming,
+        text: str,
+        *,
+        meme_category: str = "",
+        now: float | None = None,
+    ) -> None:
+        if self._memory is None:
+            return
+        content = (text or "").strip()
+        if not content and meme_category:
+            content = f"[表情包:{meme_category}]"
+        if not content:
             return
         current = self._clock() if now is None else now
         try:
@@ -433,7 +557,7 @@ class ChatService:
                 0,
                 "",
                 "assistant",
-                text.strip(),
+                content,
                 created_at=current,
             )
         except Exception as exc:  # noqa: BLE001
@@ -535,6 +659,9 @@ class ChatService:
             deleted = await asyncio.to_thread(self._memory.clear, group_id)
         self._windows.pop(group_id, None)
         self._last_reply_at.pop(group_id, None)
+        self._meme_last_at.pop(group_id, None)
+        self._meme_times.pop(group_id, None)
+        self._recent_memes.pop(group_id, None)
         logger.info("群聊上下文已清理：group=%s messages=%s", group_id, deleted)
         return deleted
 
