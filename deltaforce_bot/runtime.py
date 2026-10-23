@@ -11,6 +11,8 @@ import time
 
 from deltaforce_bot.adapters.cache import SingleFlight, TTLCache
 from deltaforce_bot.adapters.chat_memory import ChatMemory
+from deltaforce_bot.adapters.daily_password import DailyPasswordClient
+from deltaforce_bot.adapters.daily_password_store import DailyPasswordStore
 from deltaforce_bot.adapters.llm import LLMClient
 from deltaforce_bot.adapters.memes import MemeLibrary
 from deltaforce_bot.adapters.orzice import OrziceClient
@@ -20,6 +22,7 @@ from deltaforce_bot.models.gate import GateConfig, load_gate_config
 from deltaforce_bot.render.assets import AssetLibrary
 from deltaforce_bot.render.renderer import CardRenderer
 from deltaforce_bot.services.chat import ChatService
+from deltaforce_bot.services.daily_password import DailyPasswordService
 from deltaforce_bot.services.gear_loadout import GearLoadoutService
 
 logger = logging.getLogger(__name__)
@@ -42,6 +45,7 @@ class Runtime:
             else None
         )
         self.image_cache: TTLCache = TTLCache()  # 键→PNG，发送成功后才写入
+        self.daily_password_image_cache: TTLCache = TTLCache()  # 每日密码卡片按天缓存
         self.render_flight = SingleFlight()  # 并发查同一档位时只渲染一次
 
         # 群聊机器人（v2）。聊天关闭时不创建数据库/客户端。
@@ -103,6 +107,40 @@ class Runtime:
         if not settings.orzice_token:
             logger.warning("未配置 ORZICE_TOKEN，数据源请求将直接失败（请检查 .env）")
 
+        # 每日密码（v3）：免费源 + 独立 SQLite；关闭时不创建任何对象
+        self.daily_password: DailyPasswordService | None = None
+        if settings.daily_password_enabled:
+            daily_store: DailyPasswordStore | None = None
+            try:
+                daily_store = DailyPasswordStore(settings.daily_password_db_path)
+                daily_client = DailyPasswordClient(settings)
+                self.daily_password = DailyPasswordService(
+                    settings,
+                    daily_client,
+                    daily_store,
+                )
+                logger.info(
+                    "每日密码已启用：数据源 %s，预热 %s，推送 %s（UTC+%s），目标群 %s",
+                    ",".join(settings.daily_password_source_list) or "未配置",
+                    settings.daily_password_refresh_time,
+                    settings.daily_password_push_time,
+                    settings.daily_password_tz_offset,
+                    ",".join(str(item) for item in sorted(settings.daily_password_group_set))
+                    or "未配置",
+                )
+            except Exception as exc:  # noqa: BLE001  每日密码故障不能拖垮卡战备/聊天
+                logger.warning(
+                    "每日密码初始化失败，功能关闭：%s: %s",
+                    exc.__class__.__name__,
+                    exc,
+                )
+                self.daily_password = None
+                if daily_store is not None:
+                    try:
+                        daily_store.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+
     def is_debug_group(self, group_id: int | None) -> bool:
         return group_id is not None and group_id in self.debug_groups
 
@@ -113,6 +151,8 @@ class Runtime:
             await self.chat_client.aclose()
         if self.chat_memory is not None:
             await asyncio.to_thread(self.chat_memory.close)
+        if self.daily_password is not None:
+            await self.daily_password.aclose()
         if self.renderer is not None:
             await self.renderer.close()
         await self.client.aclose()

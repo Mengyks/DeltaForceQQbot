@@ -7,4 +7,4 @@
 - ``plugins``：NoneBot 插件目录（在项目根的 ``plugins/``），只做命令解析与消息收发
 """
 
-__version__ = "0.1.0"
+__version__ = "0.6.0"

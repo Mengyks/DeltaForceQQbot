@@ -1,6 +1,6 @@
 [project]
 name = "deltaforce-qqbot"
-version = "0.2.0"
+version = "0.6.0"
 description = "为《三角洲行动》玩家提供数据服务的 QQ 群机器人"
 requires-python = ">=3.13,<4.0"
 dependencies = [

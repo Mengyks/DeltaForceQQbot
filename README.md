@@ -1,25 +1,27 @@
 # DeltaForceQQbot
 
-> **接手开发 / 新会话请先读 [docs/05-V1交接总结.md](docs/05-V1交接总结.md) 和 [docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md)**：V1 基础、V2 聊天现状、部署方式、已知坑和下一步每日密码入口都在里面。
+> **接手开发 / 新会话请先读 [docs/05-V1交接总结.md](docs/05-V1交接总结.md)、[docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md) 和 [docs/08-每日密码.md](docs/08-每日密码.md)**：V1 基础、V2 聊天现状、V3 每日密码、部署方式与已知坑都在里面。
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
-**当前状态：v0.5.2** —— v1 卡战备与 v2 群聊机器人均已上线；卡战备以**图片卡片**形式在真实 QQ 群服务中，
-196 个自动化测试通过；代码已推送 GitHub（tag `v0.5.2`），线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
-下一步：新任务区实现每日密码（见 [docs/07](docs/07-V2群聊机器人交接总结.md)）。
+**当前状态：v0.6.0（每日密码，待部署）** —— v1 卡战备与 v2 群聊机器人均已上线；
+卡战备以**图片卡片**形式在真实 QQ 群服务中，223 个自动化测试通过；代码已推送 GitHub（tag `v0.6.0`），
+线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
+v3 每日密码已完成：每天 0:05 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
+使用免费的 4399 游戏盒 / eleven.icu 接口，不消耗数据帝额度，见 [docs/08](docs/08-每日密码.md)。
 
 ## 已实现的功能（v1）
 
-命令格式：**`卡战备 <地图> <难度> [兑换]`**（`兑换` 是唯一可选项，含军需处兑换方案）
+命令格式：**`/卡战备 <地图> <难度> [兑换]`**（`兑换` 是唯一可选项，含军需处兑换方案）
 
 | 命令 | 说明 |
 | --- | --- |
-| `卡战备` | 显示可查档位与用法 |
-| `卡战备 巴克什 绝密` | 该档位最省的一套方案 + 其他配装思路 |
-| `卡战备 航天 绝密 兑换` | 含军需处兑换方案（通常更省，但需要自备兑换券） |
-| `卡战备 大坝 机密` / `卡战备 长弓 机密` | 低门槛机密图 |
-| `卡战备 航天 机密` / `卡战备 巴克什 机密` | 高门槛机密图 |
-| `卡战备 大坝 常规` | 明确告知：常规模式不需要战备值 |
+| `/卡战备` | 显示可查档位与用法 |
+| `/卡战备 巴克什 绝密` | 该档位最省的一套方案 + 其他配装思路 |
+| `/卡战备 航天 绝密 兑换` | 含军需处兑换方案（通常更省，但需要自备兑换券） |
+| `/卡战备 大坝 机密` / `/卡战备 长弓 机密` | 低门槛机密图 |
+| `/卡战备 航天 机密` / `/卡战备 巴克什 机密` | 高门槛机密图 |
+| `/卡战备 大坝 常规` | 明确告知：常规模式不需要战备值 |
 
 可查档位（门槛来自接口返回的权威值，非人工填写）：
 
@@ -55,7 +57,7 @@
 > `假账 -16%` 表示该件装备的战备值比价格高约 16%（越负越划算）。字段语义已用真实响应核对，
 > 结论写在 `deltaforce_bot/models/loadout.py` 的模块文档与 `docs/01` 里。
 
-**当前关闭**：`凑战备 <目标值>`（自定义凑战备）。该接口每次请求消耗 10 次数据源资源，成本较高；
+**当前关闭**：`/凑战备 <目标值>`（自定义凑战备）。该接口每次请求消耗 10 次数据源资源，成本较高；
 代码与测试都保留，`.env` 里把 `CUSTOM_ENABLED=true` 即可恢复。
 
 ## 缓存与额度策略
@@ -82,7 +84,7 @@
 py -3.13 -m venv .venv                                # 需要 Python 3.13
 .venv/Scripts/python.exe -m pip install -e ".[dev]"
 cp .env.example .env                                  # 填 ORZICE_TOKEN
-.venv/Scripts/python.exe -m pytest -q                 # 196 个测试
+.venv/Scripts/python.exe -m pytest -q                 # 223 个测试
 .venv/Scripts/python.exe bot.py                       # 默认监听 127.0.0.1:8099
 ```
 
@@ -195,6 +197,29 @@ CHAT_MEME_DIR=assets/memes
 - 人设写 `config/persona.md`，修改后自动热加载。
 - 没有新增依赖；配置和完整说明见 [docs/06-LLM群聊机器人.md](docs/06-LLM群聊机器人.md)。
 
+## 每日密码（v3）
+
+群里发 **`/每日密码`** 查询当天地图密码；每天北京时间 **0:05 预热缓存、11:00 自动推送**到白名单群。
+使用免费接口，不消耗数据帝额度。
+
+```dotenv
+DAILY_PASSWORD_ENABLED=true
+DAILY_PASSWORD_SOURCES=4399,eleven     # 主源 4399 游戏盒，失败换 eleven.icu
+DAILY_PASSWORD_REFRESH_TIME=00:05      # 预热当天缓存
+DAILY_PASSWORD_PUSH_TIME=11:00         # 固定推送
+DAILY_PASSWORD_GROUPS=                 # 为空则沿用 CHAT_GROUPS
+DAILY_PASSWORD_QUERY_COOLDOWN=300      # 同一个群 5 分钟一次
+```
+
+- 0:05 预热成功后，白天的手动查询和 11:00 推送都直接使用这份缓存；同一天只向上游查询一次。
+- 快照写入独立 `data/daily_password.sqlite3`；0:05 预热失败会每 60 秒重试，最多 15 分钟。
+- 11:00 后 60 分钟内可补推；同一天每个群只成功推送一次，失败会重试。
+- 返回图片卡片（六地图背景 + 大号密码，约 217 KB JPEG）；渲染或发图失败自动回退文字。
+- 与聊天互不干扰：`/每日密码` 不会被聊天机器人当成聊天内容；卡战备不受影响。
+- 图片卡片预览：`.venv/Scripts/python.exe scripts/render_daily_password_preview.py`
+  → `assets/_preview/daily_password_preview.jpg`。
+- 完整接口实测、配置与验收见 [docs/08-每日密码.md](docs/08-每日密码.md)。
+
 ## 本地联调工具（不需要 token / 不需要装 NapCat）
 
 | 脚本 | 用途 |
@@ -210,7 +235,7 @@ CHAT_MEME_DIR=assets/memes
 export MSYS_NO_PATHCONV=1   # 传 /v1/... 这类参数时必须加
 .venv/Scripts/python.exe scripts/mock_api_server.py --port 8800
 ORZICE_BASE_URL=http://127.0.0.1:8800 ORZICE_TOKEN=test-token PORT=8100 .venv/Scripts/python.exe bot.py
-.venv/Scripts/python.exe scripts/fake_onebot_e2e.py --uri ws://127.0.0.1:8100/onebot/v11/ws "卡战备 巴克什 绝密"
+.venv/Scripts/python.exe scripts/fake_onebot_e2e.py --uri ws://127.0.0.1:8100/onebot/v11/ws "/卡战备 巴克什 绝密"
 ```
 
 ## 目录结构
@@ -225,13 +250,14 @@ DeltaForceQQbot/
 │   ├── config.py                 # .env → Settings
 │   ├── logging_setup.py          # 把标准库 logging 接到 loguru（NoneBot 2.5 不再自动接管）
 │   ├── runtime.py                # 运行时装配（客户端/服务/限流器）
-│   ├── adapters/                 # orzice/LLM 客户端、SQLite、本地表情包、TTL 缓存、限流
+│   ├── adapters/                 # orzice/LLM/每日密码客户端、SQLite、本地表情包、TTL 缓存、限流
 │   ├── models/                   # 数据模型（字段语义见 loadout.py 文档）与入口解析
-│   └── services/                 # gear_loadout、chat、commands、text
+│   └── services/                 # gear_loadout、chat、daily_password、commands、text
 ├── plugins/gear_loadout.py       # 卡战备入口
 ├── plugins/llm_chat.py           # 群聊机器人入口（记录器/聊天/清理指令）
+├── plugins/daily_password.py     # 每日密码入口（查询 + 0:05 预热 + 11:00 推送）
 ├── scripts/                      # 联调与运维脚本
-├── tests/                        # 196 个用例，含真实响应契约测试
+├── tests/                        # 223 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档
 ```
 
@@ -247,6 +273,7 @@ DeltaForceQQbot/
 | [docs/05-V1交接总结.md](docs/05-V1交接总结.md) | **V1 交接总结（新会话先读）**：现状、关键事实、部署、流程约定、v2 起点 |
 | [docs/06-LLM群聊机器人.md](docs/06-LLM群聊机器人.md) | v2 群聊机器人：触发、上下文、图片、权限、配置与验收 |
 | [docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md) | **V2 交接总结**：当前线上状态、聊天/表情包/人格、部署运维、每日密码接入点 |
+| [docs/08-每日密码.md](docs/08-每日密码.md) | **V3 每日密码**：免费接口实测、缓存/推送规则、配置、部署与验收 |
 
 ## 开发流程约定
 

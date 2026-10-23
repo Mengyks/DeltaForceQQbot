@@ -1,7 +1,8 @@
 """命令解析与消息格式化。
 
 命令设计（按用户要求）：
-``卡战备 <地图> <难度> [兑换]``，唯一可选项是「兑换」（含军需处兑换方案）。
+``/卡战备 <地图> <难度> [兑换]``，唯一可选项是「兑换」（含军需处兑换方案）。
+命令必须带斜杠前缀（``/`` 或全角 ``／``），与 ``/每日密码`` 统一。
 命令只接受「地图 + 难度」，不接受数字档位写法（按用户要求）。
 
 解析与排版都是纯函数（不碰网络、不碰框架），便于单测覆盖全部分支；
@@ -21,8 +22,12 @@ from deltaforce_bot.services.gear_loadout import GateResult, MAX_TARGET, MIN_TAR
 
 TIER_COMMAND = "卡战备"
 CUSTOM_COMMAND = "凑战备"
+DAILY_PASSWORD_COMMAND = "每日密码"
 
-COMMAND_PATTERN = re.compile(r"^\s*[#＃/／]?\s*(?P<cmd>卡战备|凑战备)\s*(?P<args>.*)$", re.S)
+COMMAND_PATTERN = re.compile(r"^\s*[/／]\s*(?P<cmd>卡战备|凑战备)\s*(?P<args>.*)$", re.S)
+DAILY_PASSWORD_COMMAND_PATTERN = re.compile(
+    r"^\s*[#＃/／]?\s*(?:每日密码|今日密码)\s*(?:查询)?\s*$"
+)
 
 EXCHANGE_KEYWORDS = ("兑换", "军需处", "军需")
 
@@ -88,7 +93,7 @@ _AMOUNT_PATTERN = re.compile(r"^(?P<num>\d+(?:\.\d+)?)(?P<unit>[w万])?$")
 
 CUSTOM_DISABLED_NOTE = (
     "凑战备（自定义目标战备值）暂时关闭：该接口每次请求消耗 10 次数据源资源，成本较高。\n"
-    "当前可用：卡战备 <地图> <难度> [兑换]，例如「卡战备 巴克什 绝密」。"
+    "当前可用：/卡战备 <地图> <难度> [兑换]，例如「/卡战备 巴克什 绝密」。"
 )
 
 
@@ -182,11 +187,11 @@ def parse(text: str, config: GateConfig, *, custom_enabled: bool = False) -> Que
 
     # 卡战备：地图 + 难度 [+ 兑换]
     if not cleaned:
-        return Query(kind="help", error="请给出地图和难度，例如：卡战备 巴克什 绝密")
+        return Query(kind="help", error="请给出地图和难度，例如：/卡战备 巴克什 绝密")
     map_text = cleaned[0]
     difficulty_text = cleaned[1] if len(cleaned) > 1 else None
     if len(cleaned) > 2:
-        return Query(kind="help", error=f"参数多了：{' '.join(cleaned[2:])}（格式：卡战备 <地图> <难度> [兑换]）")
+        return Query(kind="help", error=f"参数多了：{' '.join(cleaned[2:])}（格式：/卡战备 <地图> <难度> [兑换]）")
 
     resolution = resolve_gate(config, map_text, difficulty_text)
     if not resolution.ok:
@@ -196,12 +201,12 @@ def parse(text: str, config: GateConfig, *, custom_enabled: bool = False) -> Que
 
 def _parse_custom(tokens: list[str], include_exchange: bool) -> Query:
     if not tokens:
-        return Query(kind="help", error=f"请给出目标战备值，例如：{CUSTOM_COMMAND} 5万")
+        return Query(kind="help", error=f"请给出目标战备值，例如：/{CUSTOM_COMMAND} 5万")
     target = parse_amount(tokens[0])
     if target is None:
         return Query(
             kind="help",
-            error=f"无法识别目标战备值「{tokens[0]}」，请写成数字，例如：{CUSTOM_COMMAND} 50000 或 {CUSTOM_COMMAND} 5万",
+            error=f"无法识别目标战备值「{tokens[0]}」，请写成数字，例如：/{CUSTOM_COMMAND} 50000 或 /{CUSTOM_COMMAND} 5万",
         )
     if not (MIN_TARGET <= target <= MAX_TARGET):
         return Query(
@@ -291,9 +296,9 @@ def format_help(config: GateConfig, *, custom_enabled: bool = False) -> str:
     lines = [
         "【卡战备】用最低成本把战备值卡到地图门槛。",
         "",
-        "用法：卡战备 <地图> <难度> [兑换]",
-        "· 卡战备 巴克什 绝密",
-        "· 卡战备 航天 绝密 兑换   （含军需处兑换方案）",
+        "用法：/卡战备 <地图> <难度> [兑换]",
+        "· /卡战备 巴克什 绝密",
+        "· /卡战备 航天 绝密 兑换   （含军需处兑换方案）",
         "",
         "可查档位：",
     ]
@@ -307,7 +312,7 @@ def format_help(config: GateConfig, *, custom_enabled: bool = False) -> str:
         "数据每 4 小时自动更新一次，期间同样的查询直接复用缓存。",
     ]
     if custom_enabled:
-        lines.append(f"另有 {CUSTOM_COMMAND} <目标战备值> 可自定义凑战备。")
+        lines.append(f"另有 /{CUSTOM_COMMAND} <目标战备值> 可自定义凑战备。")
     return "\n".join(lines)
 
 

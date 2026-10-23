@@ -9,10 +9,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from deltaforce_bot.models.loadout import LoadoutItem, LoadoutPlan
-from deltaforce_bot.render.assets import AssetLibrary, parse_condition
+from deltaforce_bot.render.assets import AssetLibrary, file_url, parse_condition
 from deltaforce_bot.services.text import format_source_time, humanize_amount
 
 # 等级边框色（用户指定）：1 灰 / 2 绿 / 3 蓝 / 4 紫 / 5 金 / 6 红
@@ -83,14 +82,6 @@ class CardContext:
         return list(self.slots) + [None] * max(0, 4 - len(self.slots))
 
 
-def _file_url(path: Path | None) -> str | None:
-    if path is None:
-        return None
-    from urllib.parse import quote
-
-    return "file:///" + quote(str(path).replace("\\", "/"))
-
-
 def _attachment_text(item: LoadoutItem) -> str:
     """配件文字：去掉「枪1-」前缀，显示「瞄具 名称」这样的形式。"""
     sub = (item.type or "").split("-", 1)[-1] if item.type else "配件"
@@ -126,7 +117,7 @@ def build_card_context(
             CardItem(
                 label=SLOT_LABELS[slot_type],
                 name=item.name,
-                img_url=_file_url(assets.item_image(item.name, item.type, item.grade)),
+                img_url=file_url(assets.item_image(item.name, item.type, item.grade)),
                 condition=condition,
                 condition_color=CONDITION_COLORS.get(condition),
                 border_color=LEVEL_COLORS.get(item.grade or 0, "#7a8794"),
@@ -150,7 +141,7 @@ def build_card_context(
         weapon = CardWeapon(
             label=label,
             name=gun.name if gun else "（无）",
-            img_url=_file_url(assets.item_image(gun.name, gun.type, gun.grade)) if gun else None,
+            img_url=file_url(assets.item_image(gun.name, gun.type, gun.grade)) if gun else None,
             readiness=humanize_amount(gun.readiness) if gun else "",
             price=humanize_amount(gun.price) if gun else "",
             attachments=attachments or ["无需配件"],
@@ -173,7 +164,7 @@ def build_card_context(
         threshold=humanize_amount(threshold),
         updated_at=format_source_time(updated_at) or "—",
         cache_note=cache_note,
-        background_url=_file_url(assets.background(map_name)),
+        background_url=file_url(assets.background(map_name)),
         slots=slots,
         weapons=weapons,
         total_readiness=humanize_amount(plan.jz),

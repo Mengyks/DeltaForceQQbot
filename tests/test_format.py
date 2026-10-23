@@ -93,7 +93,7 @@ def test_format_help_lists_gates_and_options() -> None:
 
     for label in ("零号大坝 机密", "长弓溪谷 机密", "巴克什 机密", "航天基地 机密", "巴克什 绝密", "航天基地 绝密", "潮汐监狱 绝密"):
         assert label in text
-    assert "卡战备 <地图> <难度> [兑换]" in text
+    assert "/卡战备 <地图> <难度> [兑换]" in text
     assert "常规模式不需要战备值" in text
     assert "凑战备" not in text  # 功能关闭时不在帮助里宣传
 

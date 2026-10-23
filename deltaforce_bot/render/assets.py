@@ -27,6 +27,16 @@ logger = logging.getLogger(__name__)
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 
+
+def file_url(path: Path | None) -> str | None:
+    """本地文件 → file:// URL（中文/空格文件名 URL 编码，模板里的 <img>/背景图用）。"""
+    if path is None:
+        return None
+    from urllib.parse import quote
+
+    return "file:///" + quote(str(path).replace("\\", "/"))
+
+
 _CONDITION = re.compile(r"\s*[（(](破损|几乎全新|全新)[)）]\s*")
 _WHITESPACE = re.compile(r"\s+")
 _LEVEL_DIR = re.compile(r"level(\d)", flags=re.IGNORECASE)

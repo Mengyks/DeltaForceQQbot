@@ -98,10 +98,29 @@ class CardRenderer:
 
     # ---- 渲染 ----
     async def render(self, context: CardContext) -> bytes:
+        """渲染卡战备卡片（保持原有调用方式）。"""
+        return await self.render_template(context, template_name=TEMPLATE_NAME)
+
+    async def render_template(
+        self,
+        context: object,
+        *,
+        template_name: str,
+        screenshot_type: str = "png",
+        quality: int | None = None,
+    ) -> bytes:
+        """用指定模板渲染任意上下文；浏览器实例与页面复用。
+
+        screenshot_type="jpeg" 时可用 quality 控制体积（每日密码卡片含六张背景图，
+        PNG 体积过大，QQ/OneBot 链路容易超过单帧限制）。
+        """
         if self._browser is None:
             await self.start()
         try:
-            return await asyncio.wait_for(self._render_locked(context), timeout=self._timeout)
+            return await asyncio.wait_for(
+                self._render_locked(context, template_name, screenshot_type, quality),
+                timeout=self._timeout,
+            )
         except asyncio.TimeoutError as exc:
             await self._reset_page()
             raise RenderError(f"渲染超时（>{self._timeout}s）") from exc
@@ -111,21 +130,30 @@ class CardRenderer:
             await self._reset_page()
             raise RenderError(f"渲染失败：{exc.__class__.__name__}: {exc}") from exc
 
-    async def _render_locked(self, context: CardContext) -> bytes:
+    async def _render_locked(
+        self,
+        context: object,
+        template_name: str,
+        screenshot_type: str = "png",
+        quality: int | None = None,
+    ) -> bytes:
         async with self._lock:
-            html = self._env.get_template(TEMPLATE_NAME).render(
-                **{
-                    **context.__dict__,
-                    "slots_padded": context.slots_padded,
-                }
-            )
-            html_path = Path(tempfile.gettempdir()) / "deltaforce_card.html"
+            data = dict(context.__dict__) if hasattr(context, "__dict__") else dict(context)  # type: ignore[arg-type]
+            slots_padded = getattr(context, "slots_padded", None)
+            if slots_padded is not None:
+                data["slots_padded"] = slots_padded
+            html = self._env.get_template(template_name).render(**data)
+            html_name = Path(template_name).name.removesuffix(".j2")
+            html_path = Path(tempfile.gettempdir()) / f"deltaforce_{html_name}"
             html_path.write_text(html, encoding="utf-8")
 
             page = await self._ensure_page()
             await page.goto(html_path.as_uri(), wait_until="load")
             await page.wait_for_timeout(120)  # 等字体与图片稳定
-            return await page.screenshot(full_page=True)
+            shot_options: dict = {"full_page": True, "type": screenshot_type}
+            if quality is not None:
+                shot_options["quality"] = int(quality)
+            return await page.screenshot(**shot_options)
 
     async def _ensure_page(self):
         if self._page is None:

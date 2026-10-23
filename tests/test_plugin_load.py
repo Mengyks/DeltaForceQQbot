@@ -49,9 +49,12 @@ def test_plugin_loads_and_registers_matcher(plugin) -> None:
 def test_rule_matches_only_own_commands(plugin) -> None:
     rule = plugin.module._is_gear_command
 
-    assert rule(make_event("卡战备 11")) is True
-    assert rule(make_event("#卡战备 55 兑换")) is True
-    assert rule(make_event("凑战备 5万")) is True
-    assert rule(make_event("  凑战备 50000 不要枪")) is True
+    assert rule(make_event("/卡战备 11")) is True
+    assert rule(make_event("／卡战备 55 兑换")) is True
+    assert rule(make_event("/凑战备 5万")) is True
+    assert rule(make_event("   /凑战备 50000 不要枪")) is True
+
+    assert rule(make_event("卡战备 11")) is False
+    assert rule(make_event("#卡战备 55 兑换")) is False
     assert rule(make_event("今天天气真好")) is False
     assert rule(make_event("我说卡战备很强")) is False

@@ -85,8 +85,11 @@ def test_matcher_priorities(plugin) -> None:
 
 
 def test_command_detection(plugin) -> None:
-    assert plugin.module._is_command("卡战备 巴克什 绝密") is True
+    assert plugin.module._is_command("/卡战备 巴克什 绝密") is True
+    assert plugin.module._is_command("卡战备 巴克什 绝密") is False
     assert plugin.module._is_command("上下文清理 提取摘要") is True
+    assert plugin.module._is_command("每日密码") is True
+    assert plugin.module._is_command("/每日密码") is True
     assert plugin.module._is_command("今天天气真好") is False
 
 
@@ -102,7 +105,8 @@ def test_at_bot_anywhere_and_alias(plugin) -> None:
 def test_should_chat_uses_service_and_excludes_commands(plugin) -> None:
     stub_runtime(plugin, should=True)
     assert plugin.module._should_chat(make_event("在吗")) is True
-    assert plugin.module._should_chat(make_event("卡战备 巴克什 绝密")) is False
+    assert plugin.module._should_chat(make_event("/卡战备 巴克什 绝密")) is False
+    assert plugin.module._should_chat(make_event("每日密码")) is False
 
     stub_runtime(plugin, should=False)
     assert plugin.module._should_chat(make_event("在吗")) is False
@@ -141,6 +145,6 @@ async def test_preprocessor_records_human_messages(plugin) -> None:
 
 async def test_preprocessor_skips_commands(plugin) -> None:
     chat = stub_runtime(plugin, group=True)
-    event = make_event("卡战备 巴克什 绝密", message_id=10)
+    event = make_event("/卡战备 巴克什 绝密", message_id=10)
     await plugin.module.record_chat_message(event)
     assert not hasattr(chat, "recorded")
