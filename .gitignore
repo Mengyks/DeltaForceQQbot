@@ -43,6 +43,9 @@ napcat/
 NapCat/
 QQ/
 
+# ---- 本地人格素材（第三方 prompts 仓库，不进本项目仓库）
+assets/astrbot-*
+
 # ---- 静态资源：图片一律不入库（体积大；用 scripts/fetch_item_images.py 重新获取或本机直连服务器）----
 assets/**/*.png
 assets/**/*.jpg

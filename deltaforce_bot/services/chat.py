@@ -182,14 +182,14 @@ class ChatService:
         window = self._windows.get(group_id)
         if window is None or window.until <= current:
             return False
-        max_replies = int(getattr(self._settings, "chat_followup_max_replies", 10))
+        max_replies = int(getattr(self._settings, "chat_followup_max_replies", 3))
         if window.replies >= max_replies:
             return False
-        cooldown = float(getattr(self._settings, "chat_cooldown", 3))
+        cooldown = float(getattr(self._settings, "chat_cooldown", 20))
         return current - window.last_reply_at >= cooldown
 
     def _ambient_allows(self, meta: ChatIncoming, current: float) -> bool:
-        if not getattr(self._settings, "chat_ambient_enabled", True):
+        if not getattr(self._settings, "chat_ambient_enabled", False):
             return False
         min_chars = int(getattr(self._settings, "chat_ambient_min_chars", 2))
         if not meta.images and len((meta.text or "").strip()) < min_chars:
@@ -442,7 +442,7 @@ class ChatService:
         self._note_reply(meta, current)
 
     def _note_reply(self, meta: ChatIncoming, now: float) -> None:
-        window_seconds = float(getattr(self._settings, "chat_followup_window", 300))
+        window_seconds = float(getattr(self._settings, "chat_followup_window", 180))
         if window_seconds <= 0:
             return
         direct = meta.addressed or meta.reply_to_bot
