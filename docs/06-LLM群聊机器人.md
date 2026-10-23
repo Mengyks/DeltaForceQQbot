@@ -14,7 +14,7 @@
 - **忽略**：`卡战备`/`凑战备`/`上下文清理` 命令、机器人自己、`CHAT_IGNORE_QQ` 里的账号、空消息。
 - **群共享上下文**：所有白名单群的人类消息会写入 SQLite，供下一次 @/跟进回复时参考；不是只记录被 @ 的消息。
 - **图片/表情包**：当前消息里的 `image`/`mface` 会尽量下载并作为 `image_url` 发给模型；下载失败降级成文字 `[图片]`。历史消息只保存 `[图片]` 占位，不保存图片字节。
-- **本地表情包**：模型可以通过 `send_meme(category)` 工具从 `assets/memes` 里发一张图；分类来自 `manifest.json` 和实际目录。服务会做每群 90 秒冷却、10 分钟最多 3 张、避开最近 8 张；只发本地图，不做网页图片搜索。
+- **本地表情包**：模型可以通过 `send_meme(category)` 工具从 `assets/memes` 里发一张图；分类来自 `manifest.json` 和实际目录。服务会做每群 30 秒冷却、10 分钟最多 5 张、避开最近 8 张；只发本地图，不做网页图片搜索。
 - **短句独立消息**：模型输出按换行/句末标点拆成最多 3 条独立 QQ 消息逐条发送，不再把多句话合并在同一条消息里；不使用 QQ 的“引用回复”，发送成功后才写入 assistant 消息并开窗口。
 - **接梗上下文**：如果当前消息是在回复别人的某句话，会把被回复的文本一起带进模型上下文，减少答非所问。
 
@@ -68,8 +68,8 @@ CHAT_MEME_DIR=assets/memes
 | `CHAT_MAX_IMAGES_PER_MESSAGE` | 4 | 单条消息最多图片数 |
 | `CHAT_MEME_ENABLED` | true | 是否启用本地表情包工具 |
 | `CHAT_MEME_DIR` | `assets/memes` | 表情包根目录（含 `manifest.json` 和 `memes/`） |
-| `CHAT_MEME_COOLDOWN` | 90 | 同一群两次发图的最小间隔（秒） |
-| `CHAT_MEME_MAX_PER_10MIN` | 3 | 同一群 10 分钟最多发几张 |
+| `CHAT_MEME_COOLDOWN` | 30 | 同一群两次发图的最小间隔（秒） |
+| `CHAT_MEME_MAX_PER_10MIN` | 5 | 同一群 10 分钟最多发几张 |
 | `CHAT_MEME_RECENT_EXCLUDE` | 8 | 避开最近发过的几张 |
 
 人设写在 `config/persona.md`，文件修改后下一次请求自动重新加载（按 mtime）。

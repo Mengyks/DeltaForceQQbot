@@ -380,6 +380,20 @@ class ChatService:
             return None
         return [self._memes.tool_spec()]
 
+    def _meme_ready(self, group_id: int, now: float) -> bool:
+        if self._memes is None or not self._memes.available:
+            return False
+        cooldown = max(int(getattr(self._settings, "chat_meme_cooldown", 30)), 0)
+        if cooldown and now - self._meme_last_at.get(group_id, 0.0) < cooldown:
+            return False
+        max_per_10min = max(int(getattr(self._settings, "chat_meme_max_per_10min", 5)), 0)
+        times = self._meme_times.get(group_id)
+        if not times:
+            return True
+        while times and now - times[0] >= 600:
+            times.popleft()
+        return not max_per_10min or len(times) < max_per_10min
+
     async def _select_meme(
         self,
         group_id: int,
@@ -401,10 +415,10 @@ class ChatService:
         if self._memes is None or not self._memes.available:
             return None, {"ok": False, "reason": "表情包库未启用"}
 
-        cooldown = max(int(getattr(self._settings, "chat_meme_cooldown", 90)), 0)
+        cooldown = max(int(getattr(self._settings, "chat_meme_cooldown", 30)), 0)
         if cooldown and now - self._meme_last_at.get(group_id, 0.0) < cooldown:
             return None, {"ok": False, "reason": "刚发过图，过一会再发"}
-        max_per_10min = max(int(getattr(self._settings, "chat_meme_max_per_10min", 3)), 0)
+        max_per_10min = max(int(getattr(self._settings, "chat_meme_max_per_10min", 5)), 0)
         times = self._meme_times.setdefault(group_id, deque())
         while times and now - times[0] >= 600:
             times.popleft()
@@ -438,10 +452,13 @@ class ChatService:
             system += f"\n\n[群聊摘要]\n{summary[: max_context // 3]}"
         system += f"\n\n{HARD_RULES}"
         if self._meme_tools() and self._memes is not None:
+            ready = self._meme_ready(meta.group_id, self._clock())
+            state = "现在可以发一张" if ready else "刚刚发过图或达到上限，这次不要调用 send_meme"
             system += (
                 "\n\n[本地表情包]\n"
-                "你可以在合适的时候调用 send_meme 发一张本地表情包；不是每条都要发，一次最多一张。"
-                "分类说明：\n"
+                "遇到明显情绪、玩笑、吐槽、安慰、惊讶、夸奖等场景时，优先调用 send_meme 发一张图；"
+                "平均每 2~3 次值得接梗的回复可以发一张，别连续刷图，一次最多一张。"
+                f"当前状态：{state}。\n分类说明：\n"
                 f"{self._memes.category_help()}"
             )
 

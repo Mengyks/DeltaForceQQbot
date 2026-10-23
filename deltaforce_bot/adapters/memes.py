@@ -130,8 +130,8 @@ class MemeLibrary:
                 "name": "send_meme",
                 "description": (
                     "从本地表情包库发一张符合当前聊天场景的图。"
-                    "只在确实适合时调用，一次回复最多一张；不要每条消息都发。"
-                    "category 必须是给定分类之一。"
+                    "遇到明显情绪、玩笑、吐槽、安慰、惊讶、夸奖等场景时优先调用；"
+                    "一次回复最多一张，不要连续刷图。category 必须是给定分类之一。"
                 ),
                 "parameters": {
                     "type": "object",
