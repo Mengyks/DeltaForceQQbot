@@ -20,6 +20,7 @@ from deltaforce_bot.services.chat import (
     ChatEmptyContext,
     ChatRateLimited,
     ChatService,
+    split_chat_messages,
     split_reply,
 )
 from tests.support import make_chat_settings
@@ -492,3 +493,13 @@ async def test_tools_unsupported_falls_back_to_plain_chat(tmp_path) -> None:
     finally:
         await service.aclose()
         memory.close()
+
+
+def test_split_chat_messages_into_independent_messages() -> None:
+    assert split_chat_messages("我收到\n但是带我去亏钱我就把你改花刀喵") == [
+        "我收到",
+        "但是带我去亏钱我就把你改花刀喵",
+    ]
+    assert split_chat_messages("辛苦了辛苦了。多休息啊。") == ["辛苦了辛苦了。", "多休息啊。"]
+    assert split_chat_messages("一\n二\n三\n四") == ["一", "二", "三…"]
+    assert split_chat_messages("   ") == []

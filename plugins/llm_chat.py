@@ -28,7 +28,7 @@ from deltaforce_bot.services.chat import (
     ChatEmptyContext,
     ChatRateLimited,
     ChatUnavailable,
-    split_reply,
+    split_chat_messages,
 )
 from deltaforce_bot.services.text import COMMAND_PATTERN
 
@@ -291,10 +291,9 @@ async def handle_chat(event: GroupMessageEvent) -> None:
             await chat_matcher.send("刚才走神了，再说一次？")
         return
 
-    chunks = split_reply(
+    chunks = split_chat_messages(
         reply.text,
-        limit=int(getattr(runtime.settings, "chat_reply_chunk_chars", 1500)),
-        max_chunks=int(getattr(runtime.settings, "chat_max_reply_chunks", 3)),
+        max_messages=int(getattr(runtime.settings, "chat_max_reply_chunks", 3)),
     )
     if not chunks and not reply.images:
         chunks = ["嗯嗯"]

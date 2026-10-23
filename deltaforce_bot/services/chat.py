@@ -715,6 +715,36 @@ def split_reply(text: str, limit: int = 1500, max_chunks: int = 3) -> list[str]:
     return [chunk for chunk in chunks if chunk]
 
 
+def split_chat_messages(text: str, max_messages: int = 3) -> list[str]:
+    """把模型输出拆成多条独立短消息（不是同一消息里的换行）。
+
+    优先按换行拆；如果模型把多句写在同一行，再按句末标点拆。
+    最多保留 max_messages 条；超出的部分在末条加省略号。
+    """
+    text = (text or "").strip()
+    if not text:
+        return []
+    max_messages = max(int(max_messages), 1)
+
+    lines = [line.strip() for line in re.split(r"\r?\n+", text) if line.strip()]
+    messages: list[str] = []
+    for line in lines:
+        line = re.sub(r"^\s*[-*•]\s*", "", line).strip()
+        if not line:
+            continue
+        sentences = [
+            part.strip()
+            for part in re.split(r"(?<=[。！？!?])\s*(?=\S)", line)
+            if part.strip()
+        ]
+        messages.extend(sentences or [line])
+
+    if len(messages) > max_messages:
+        messages = messages[:max_messages]
+        messages[-1] = messages[-1].rstrip() + "…"
+    return messages
+
+
 def _guess_mime(mime: str, data: bytes) -> str:
     if mime.lower().startswith("image/"):
         return mime.split(";")[0].strip().lower()
