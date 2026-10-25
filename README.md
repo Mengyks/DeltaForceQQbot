@@ -4,10 +4,10 @@
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
-**当前状态：v0.6.1（每日密码，待部署）** —— v1 卡战备与 v2 群聊机器人均已上线；
-卡战备以**图片卡片**形式在真实 QQ 群服务中，224 个自动化测试通过；代码已推送 GitHub（tag `v0.6.1`），
+**当前状态：v0.6.2（每日密码，待部署）** —— v1 卡战备与 v2 群聊机器人均已上线；
+卡战备以**图片卡片**形式在真实 QQ 群服务中，224 个自动化测试通过；代码已推送 GitHub（tag `v0.6.2`），
 线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
-v3 每日密码已完成：每天 0:05 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
+v3 每日密码已完成：每天 0:15 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
 使用免费的 4399 游戏盒 / eleven.icu 接口，不消耗数据帝额度，见 [docs/08](docs/08-每日密码.md)。
 
 ## 已实现的功能（v1）
@@ -200,20 +200,20 @@ CHAT_MEME_DIR=assets/memes
 
 ## 每日密码（v3）
 
-群里发 **`/每日密码`** 查询当天地图密码；每天北京时间 **0:05 预热缓存、11:00 自动推送**到白名单群。
+群里发 **`/每日密码`** 查询当天地图密码；每天北京时间 **0:15 预热缓存、11:00 自动推送**到白名单群。
 使用免费接口，不消耗数据帝额度。
 
 ```dotenv
 DAILY_PASSWORD_ENABLED=true
 DAILY_PASSWORD_SOURCES=4399,eleven     # 主源 4399 游戏盒，失败换 eleven.icu
-DAILY_PASSWORD_REFRESH_TIME=00:05      # 预热当天缓存
+DAILY_PASSWORD_REFRESH_TIME=00:15      # 预热当天缓存
 DAILY_PASSWORD_PUSH_TIME=11:00         # 固定推送
 DAILY_PASSWORD_GROUPS=                 # 为空则沿用 CHAT_GROUPS
 DAILY_PASSWORD_QUERY_COOLDOWN=300      # 同一个群 5 分钟一次
 ```
 
-- 0:05 预热成功后，白天的手动查询和 11:00 推送都直接使用这份缓存；同一天只向上游查询一次。
-- 快照写入独立 `data/daily_password.sqlite3`；0:05 预热失败会每 60 秒重试，最多 15 分钟。
+- 0:15 预热成功后，白天的手动查询和 11:00 推送都直接使用这份缓存；同一天只向上游查询一次。
+- 快照写入独立 `data/daily_password.sqlite3`；0:15 预热失败会每 60 秒重试，最多 15 分钟。
 - 11:00 后 60 分钟内可补推；同一天每个群只成功推送一次，失败会重试。
 - 返回图片卡片（六地图背景 + 大号密码，约 217 KB JPEG）；渲染或发图失败自动回退文字。
 - 与聊天互不干扰：`/每日密码` 不会被聊天机器人当成聊天内容；卡战备不受影响。
@@ -256,7 +256,7 @@ DeltaForceQQbot/
 │   └── services/                 # gear_loadout、chat、daily_password、commands、text
 ├── plugins/gear_loadout.py       # 卡战备入口
 ├── plugins/llm_chat.py           # 群聊机器人入口（记录器/聊天/清理指令）
-├── plugins/daily_password.py     # 每日密码入口（查询 + 0:05 预热 + 11:00 推送）
+├── plugins/daily_password.py     # 每日密码入口（查询 + 0:15 预热 + 11:00 推送）
 ├── scripts/                      # 联调与运维脚本
 ├── tests/                        # 224 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档

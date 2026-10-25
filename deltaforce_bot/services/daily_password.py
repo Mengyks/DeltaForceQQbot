@@ -1,7 +1,7 @@
 """每日密码业务逻辑：一天只取一次、SQLite 持久缓存、查询冷却、预热/推送窗口。
 
 设计约束（用户要求）：
-- 每天北京时间 00:05 预热当天缓存，之后群友查询直接复用缓存；
+- 每天北京时间 00:15 预热当天缓存，之后群友查询直接复用缓存；
 - 每天北京时间 11:00 推送到白名单群；错过时间后有一小时的补推窗口；
 - 同一天只向上游查询一次，成功后缓存到当天结束，后续所有请求（含定时推送）都用这份快照；
 - 手动 ``/每日密码`` 每个群 5 分钟最多触发一次。
@@ -27,7 +27,7 @@ from deltaforce_bot.models.daily_password import DailyPasswordSnapshot
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_REFRESH_TIME = "00:05"
+DEFAULT_REFRESH_TIME = "00:15"
 DEFAULT_PUSH_TIME = "11:00"
 _CLOCK_PATTERN = re.compile(r"^\s*(\d{1,2}):(\d{2})\s*$")
 

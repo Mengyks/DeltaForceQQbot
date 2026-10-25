@@ -76,13 +76,13 @@ class Settings(BaseSettings):
     daily_password_db_path: Path = PROJECT_ROOT / "data" / "daily_password.sqlite3"
     daily_password_groups: str = ""  # 定时推送群；为空时沿用 CHAT_GROUPS
     daily_password_push_enabled: bool = True
-    daily_password_refresh_time: str = "00:05"  # 北京时间；预热当天缓存，供手动查询/11 点推送
+    daily_password_refresh_time: str = "00:15"  # 北京时间；预热当天缓存，供手动查询/11 点推送
     daily_password_push_time: str = "11:00"  # 北京时间；固定推送时间
     daily_password_push_window_minutes: int = 60  # 错过推送时间后的补推窗口
     daily_password_query_cooldown: int = 300  # 秒；同一群两次手动查询的最小间隔
     daily_password_sources: str = "4399,eleven"  # 按顺序尝试：4399 → eleven
     daily_password_timeout: float = 15.0
-    daily_password_tz_offset: int = 8  # 服务器通常是 UTC，按 UTC+8 计算“今天”、0:05 和 11:00
+    daily_password_tz_offset: int = 8  # 服务器通常是 UTC，按 UTC+8 计算“今天”、0:15 和 11:00
     daily_password_history_days: int = 7  # 本地快照/推送记录保留天数
 
     # LLM（OpenAI 兼容接口）

@@ -38,7 +38,7 @@ def daily_settings(**overrides: Any):
         "daily_password_enabled": True,
         "daily_password_sources": "4399,eleven",
         "daily_password_timeout": 2.0,
-        "daily_password_refresh_time": "00:05",
+        "daily_password_refresh_time": "00:15",
         "daily_password_push_time": "11:00",
         "daily_password_push_window_minutes": 60,
         "daily_password_query_cooldown": 300,
@@ -245,9 +245,9 @@ def test_refresh_window(tmp_path: Path) -> None:
     store = DailyPasswordStore(tmp_path / "daily_password.sqlite3")
     service = DailyPasswordService(daily_settings(), FakeDailyClient(), store)
     try:
-        assert service.refresh_time_text == "00:05"
-        assert service.in_refresh_window(datetime(2026, 10, 23, 0, 4, tzinfo=BJ)) is False
-        assert service.in_refresh_window(datetime(2026, 10, 23, 0, 5, tzinfo=BJ)) is True
+        assert service.refresh_time_text == "00:15"
+        assert service.in_refresh_window(datetime(2026, 10, 23, 0, 14, tzinfo=BJ)) is False
+        assert service.in_refresh_window(datetime(2026, 10, 23, 0, 15, tzinfo=BJ)) is True
         assert service.in_refresh_window(datetime(2026, 10, 23, 10, 59, tzinfo=BJ)) is True
         assert service.in_refresh_window(datetime(2026, 10, 23, 11, 0, tzinfo=BJ)) is False
     finally:
@@ -292,7 +292,7 @@ def test_invalid_refresh_time_falls_back(tmp_path: Path) -> None:
         store,
     )
     try:
-        assert service.refresh_time_text == "00:05"
+        assert service.refresh_time_text == "00:15"
     finally:
         store.close()
 

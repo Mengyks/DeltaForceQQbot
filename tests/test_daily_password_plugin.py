@@ -128,7 +128,7 @@ def make_push_service(tmp_path: Path, hour: int = 11, minute: int = 1, client=No
         daily_password_enabled=True,
         daily_password_sources="4399",
         daily_password_db_path=tmp_path / "daily_password.sqlite3",
-        daily_password_refresh_time="00:05",
+        daily_password_refresh_time="00:15",
         daily_password_push_time="11:00",
         daily_password_push_window_minutes=60,
         daily_password_query_cooldown=300,
@@ -202,7 +202,7 @@ async def test_render_image_failure_falls_back(plugin) -> None:
 
 
 async def test_refresh_if_needed_warms_cache_once(plugin, tmp_path: Path) -> None:
-    service, client, store = make_push_service(tmp_path, hour=0, minute=10)
+    service, client, store = make_push_service(tmp_path, hour=0, minute=20)
     state = plugin.module._RefreshState()
     try:
         assert await plugin.module._refresh_if_needed(service, state, now_monotonic=0.0) is True
@@ -221,7 +221,7 @@ async def test_refresh_retries_then_stops(plugin, tmp_path: Path) -> None:
     service, _client, store = make_push_service(
         tmp_path,
         hour=0,
-        minute=10,
+        minute=20,
         client=client,
     )
     state = plugin.module._RefreshState()
