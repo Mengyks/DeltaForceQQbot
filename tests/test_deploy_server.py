@@ -65,3 +65,11 @@ def test_upload_skips_generated_and_optional_paths() -> None:
     assert skip(".env", skip_env=True)
     assert not skip(".env")
     assert not skip("deltaforce_bot/config.py")
+
+
+def test_env_is_preserved_unless_upload_env_requested() -> None:
+    """默认保留服务器 .env，避免本地开发配置覆盖生产开关。"""
+    assert deploy_server.should_upload_env(SimpleNamespace()) is False
+    assert deploy_server.should_upload_env(SimpleNamespace(upload_env=False)) is False
+    assert deploy_server.should_upload_env(SimpleNamespace(upload_env=True)) is True
+    assert deploy_server.should_upload_env(SimpleNamespace(upload_env=True, keep_env=True)) is False

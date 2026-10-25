@@ -4,8 +4,8 @@
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
-**当前状态：v0.6.0（每日密码，待部署）** —— v1 卡战备与 v2 群聊机器人均已上线；
-卡战备以**图片卡片**形式在真实 QQ 群服务中，223 个自动化测试通过；代码已推送 GitHub（tag `v0.6.0`），
+**当前状态：v0.6.1（每日密码，待部署）** —— v1 卡战备与 v2 群聊机器人均已上线；
+卡战备以**图片卡片**形式在真实 QQ 群服务中，224 个自动化测试通过；代码已推送 GitHub（tag `v0.6.1`），
 线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
 v3 每日密码已完成：每天 0:05 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
 使用免费的 4399 游戏盒 / eleven.icu 接口，不消耗数据帝额度，见 [docs/08](docs/08-每日密码.md)。
@@ -84,7 +84,7 @@ v3 每日密码已完成：每天 0:05 预热当天缓存、11:00 推送到白�
 py -3.13 -m venv .venv                                # 需要 Python 3.13
 .venv/Scripts/python.exe -m pip install -e ".[dev]"
 cp .env.example .env                                  # 填 ORZICE_TOKEN
-.venv/Scripts/python.exe -m pytest -q                 # 223 个测试
+.venv/Scripts/python.exe -m pytest -q                 # 224 个测试
 .venv/Scripts/python.exe bot.py                       # 默认监听 127.0.0.1:8099
 ```
 
@@ -122,7 +122,8 @@ export MSYS_NO_PATHCONV=1          # Git Bash 用户必加
 | --- | --- |
 | `--skip-assets` | 跳过 `assets/`（图片资源 56MB，只在换图时需要传） |
 | `--exclude-tests` | 不上传 `tests/` |
-| `--keep-env` | 不覆盖服务器上已有的 `.env` |
+| `--upload-env` | 用本地 `.env` 覆盖服务器配置（默认**保留服务器 .env**） |
+| `--keep-env` | 兼容旧参数；现在默认就保留服务器 `.env` |
 | `--skip-deps` | 只更新代码，跳过 pip 与浏览器安装 |
 | `--force-bootstrap` | 强制重装 Python 依赖与 Chromium 系统依赖 |
 | `--no-restart` | 完成引导和单元安装，但不重启服务 |
@@ -257,7 +258,7 @@ DeltaForceQQbot/
 ├── plugins/llm_chat.py           # 群聊机器人入口（记录器/聊天/清理指令）
 ├── plugins/daily_password.py     # 每日密码入口（查询 + 0:05 预热 + 11:00 推送）
 ├── scripts/                      # 联调与运维脚本
-├── tests/                        # 223 个用例，含真实响应契约测试
+├── tests/                        # 224 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档
 ```
 

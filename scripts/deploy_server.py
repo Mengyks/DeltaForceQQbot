@@ -17,7 +17,8 @@ Playwright Chromium → 写入 systemd 单元并重启服务。这样不需要�
     # 常用参数
     --skip-assets        跳过 assets/（56 MB，图片没变时不传）
     --exclude-tests      不上传 tests/
-    --keep-env           不覆盖服务器上的 .env（本地 .env 不作为唯一来源）
+    --upload-env         同步本地 .env 覆盖服务器配置（默认保留服务器上的 .env）
+    --keep-env           兼容旧参数；现在默认就保留服务器 .env
     --skip-deps          只更新代码，不检查/安装 Python 依赖和浏览器
     --force-bootstrap    强制重装 Python 依赖与 Chromium 系统依赖
     --stop-old-docker    首次从 Docker 迁移时停止旧的 deltaforce-bot 容器（保留容器便于回退）
@@ -29,8 +30,8 @@ Playwright Chromium → 写入 systemd 单元并重启服务。这样不需要�
 
 说明：
 - 默认上传到服务器的 /opt/deltaforce-qqbot，可用 --path 修改。
-- 会一并上传 .env（含 token，属于敏感文件，仅通过 SSH 传输，不会进入版本库）；
-  服务器上会设置为 root:<service-user> 640。
+- **默认保留服务器上的 .env**（服务器配置是生产唯一来源）；首次部署或确需用本地 .env
+  覆盖时加 `--upload-env`，上传仅通过 SSH，不会进入版本库，服务器上会设置为 root:<service-user> 640。
 - 服务默认以非 root 用户 deltaforce 运行，监听 127.0.0.1:8099。
 """
 
@@ -100,6 +101,11 @@ def should_skip(
     if exclude_tests and rel.parts and rel.parts[0] in {"tests"}:
         return True
     return False
+
+
+def should_upload_env(args) -> bool:
+    """默认保留服务器 .env；只有显式 --upload-env 才覆盖（--keep-env 兼容旧命令）。"""
+    return bool(getattr(args, "upload_env", False)) and not bool(getattr(args, "keep_env", False))
 
 
 def iter_files(*, exclude_tests: bool, skip_assets: bool = False, skip_env: bool = False):
@@ -207,12 +213,16 @@ def upload(client: paramiko.SSHClient, args) -> int:
     for sub in ("config", "deploy", "deltaforce_bot", "docs", "plugins", "scripts"):
         run(client, f"mkdir -p {shlex.quote(posixpath.join(args.path, sub))}")
 
+    upload_env = should_upload_env(args)
+    if not upload_env:
+        print("保留服务器上的 .env（如需同步本地 .env，加 --upload-env）")
+
     count = 0
     total_bytes = 0
     for local, rel in iter_files(
         exclude_tests=args.exclude_tests,
         skip_assets=args.skip_assets,
-        skip_env=args.keep_env,
+        skip_env=not upload_env,
     ):
         remote = posixpath.join(args.path, rel.as_posix())
         remote_dir = posixpath.dirname(remote)
@@ -427,7 +437,8 @@ def main() -> None:
     parser.add_argument("--no-restart", action="store_true", help="完成引导和单元安装，但不重启服务")
     parser.add_argument("--exclude-tests", action="store_true", help="不上传 tests/（服务器上不需要跑测试时）")
     parser.add_argument("--skip-assets", action="store_true", help="跳过 assets/（图片资源 56MB，只在图片变动时才需要传）")
-    parser.add_argument("--keep-env", action="store_true", help="不覆盖服务器上已有的 .env")
+    parser.add_argument("--keep-env", action="store_true", help="兼容旧参数；现在默认就保留服务器 .env")
+    parser.add_argument("--upload-env", action="store_true", help="同步本地 .env 覆盖服务器配置（默认保留服务器 .env）")
     parser.add_argument("--skip-deps", action="store_true", help="跳过 pip 与 Playwright 安装，只更新代码")
     parser.add_argument("--force-bootstrap", action="store_true", help="强制重装依赖与 Chromium 系统依赖")
     parser.add_argument(
