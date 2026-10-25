@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #f2f3f5; }
+  body {
+    width: 720px;
+    padding: 16px;
+    font-family: "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "WenQuanYi Zen Hei", "WenQuanYi Micro Hei", "PingFang SC", sans-serif;
+    color: #20242b;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e8eaee;
+    border-radius: 22px;
+    padding: 28px 30px 30px;
+    box-shadow: 0 8px 24px rgba(20, 24, 32, .08);
+  }
+  .header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+  .name { color: #20242b; }
+  .dash { color: #c4c9d1; font-weight: 600; }
+  .status { font-weight: 800; }
+  .rule {
+    height: 2px;
+    margin: 16px 0 22px;
+    background: linear-gradient(90deg, #fb7299 0%, #fb7299 64px, #eceef2 64px, #eceef2 100%);
+    border-radius: 999px;
+  }
+  .cover {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #f0f1f3;
+    border: 1px solid #eceef2;
+  }
+  .cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9aa1ac;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .room {
+    margin-top: 22px;
+    font-size: 20px;
+    line-height: 1.45;
+    color: #5f6672;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <span class="name">{{ uname }}</span>
+    <span class="dash">--</span>
+    <span class="status" style="color: {{ status_color }}">{{ status_text }}</span>
+  </div>
+  <div class="rule"></div>
+  <div class="cover">
+    {% if cover_url %}
+    <img src="{{ cover_url }}" alt="直播封面">
+    {% else %}
+    <div class="cover-placeholder">未成功获取封面</div>
+    {% endif %}
+  </div>
+  <div class="room">{{ room_url }}</div>
+</div>
+</body>
+</html>

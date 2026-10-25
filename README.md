@@ -1,14 +1,17 @@
 # DeltaForceQQbot
 
-> **接手开发 / 新会话请先读 [docs/05-V1交接总结.md](docs/05-V1交接总结.md)、[docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md) 和 [docs/08-每日密码.md](docs/08-每日密码.md)**：V1 基础、V2 聊天现状、V3 每日密码、部署方式与已知坑都在里面。
+> **接手开发 / 新会话请先读 [docs/09-V3交接总结.md](docs/09-V3交接总结.md) 与 [docs/10-直播订阅.md](docs/10-直播订阅.md)、[docs/11-制造台利润.md](docs/11-制造台利润.md)**，再按需看 [docs/05-V1交接总结.md](docs/05-V1交接总结.md)、[docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md)、[docs/08-每日密码.md](docs/08-每日密码.md)：当前功能/生产配置、V1 基础、V2 聊天、V3 每日密码、V4 直播订阅、V5 制造台利润、部署方式与下一版规划都在里面。
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
-**当前状态：v0.6.2（每日密码，待部署）** —— v1 卡战备与 v2 群聊机器人均已上线；
-卡战备以**图片卡片**形式在真实 QQ 群服务中，224 个自动化测试通过；代码已推送 GitHub（tag `v0.6.2`），
-线上运行在腾讯云 `39.106.135.148`（bot 原生 systemd + NapCat 原生）。
-v3 每日密码已完成：每天 0:15 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
+**当前状态：v0.8.0（制造台利润，已部署待验收）** —— v1 卡战备、v2 群聊机器人、v3 每日密码、v4 B站直播订阅均已上线；
+v5 制造台利润已完成：四个台 Lv3 各取每小时利润最高的物品，图片卡片 + 12 小时缓存，300 个自动化测试全部通过；
+线上已运行 v0.8.0（制造台利润），等待群内验收；
+GitHub `Mengyks/DeltaForceQQbot` 待验收通过后提交并打 tag `v0.8.0`。
+v4 直播订阅见 [docs/10](docs/10-直播订阅.md)，v5 制造台利润见 [docs/11](docs/11-制造台利润.md)。
+v3 每日密码：每天 0:15 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
 使用免费的 4399 游戏盒 / eleven.icu 接口，不消耗数据帝额度，见 [docs/08](docs/08-每日密码.md)。
+v4 直播订阅见 [docs/10](docs/10-直播订阅.md)。
 
 ## 已实现的功能（v1）
 
@@ -84,7 +87,7 @@ v3 每日密码已完成：每天 0:15 预热当天缓存、11:00 推送到白�
 py -3.13 -m venv .venv                                # 需要 Python 3.13
 .venv/Scripts/python.exe -m pip install -e ".[dev]"
 cp .env.example .env                                  # 填 ORZICE_TOKEN
-.venv/Scripts/python.exe -m pytest -q                 # 224 个测试
+.venv/Scripts/python.exe -m pytest -q                 # 300 个测试
 .venv/Scripts/python.exe bot.py                       # 默认监听 127.0.0.1:8099
 ```
 
@@ -221,6 +224,64 @@ DAILY_PASSWORD_QUERY_COOLDOWN=300      # 同一个群 5 分钟一次
   → `assets/_preview/daily_password_preview.jpg`。
 - 完整接口实测、配置与验收见 [docs/08-每日密码.md](docs/08-每日密码.md)。
 
+## 直播订阅（v4，B站）
+
+订阅 B 站主播 UID；主播开播时，机器人把**开播卡片 + 文字直播间链接**推送到两个群。
+只做开播提醒，不做下播提醒；接口免费、无需登录。
+
+```dotenv
+LIVE_ENABLED=true
+LIVE_DB_PATH=data/live.sqlite3
+LIVE_POLL_INTERVAL=180          # 每 3 分钟批量查一次
+LIVE_IMAGE_MAX_KB=350           # 卡片压缩目标；超过自动降质量
+```
+
+```
+/直播订阅 添加 <B站UID>
+/直播订阅 删除 <B站UID>
+/直播订阅 列表
+/直播订阅 查询 <B站UID>
+```
+
+- **全局订阅**：任意一个群添加/删除，两个群同时生效；开播时同时推两个群。
+- **权限**：只有群主和 `SUPERUSERS` 可以添加/删除；普通群友可以看列表和查询。
+- **添加时正在直播**：只回复“当前正在直播”，抑制当前场次；下次真正开播再推。
+- **去重**：用 B 站返回的 `live_time` 作为场次 ID；同一场每个群只推一次，服务重启后也不会重复。
+- **轮询**：默认 180 秒；批量查询所有订阅。`live_status=1` 才算直播中，`0`/`2`（轮播）不推。
+- **推送**：HTML + Playwright 渲染开播卡片（主播名 -- 直播中、封面、直播间地址），
+  同一消息内附文字直播间链接；实测约 58 KB，超过 350 KB 会自动降低 JPEG 质量。
+  卡片或图片发送失败时回退纯文字，文字里始终有直播间链接。
+- **不影响其他功能**：独立 `data/live.sqlite3`；接口失败只退避重试，不会误判下播。
+- **关键坑**：B 站会拦截 `python-httpx` 默认 UA（HTTP 412），客户端固定使用浏览器 UA + Referer；
+  批量参数必须写成 `uids[]=...`，不能写成 `uids=1,2`。
+- 卡片预览：`.venv/Scripts/python.exe scripts/render_live_preview.py`
+  → `assets/_preview/live_subscription_preview.jpg`。
+- 完整接口实测、配置与验收见 [docs/10-直播订阅.md](docs/10-直播订阅.md)。
+
+## 制造台利润（v5）
+
+群里发 **`/制造利润`**（也支持 `/制造台利润`、`/每日利润`），返回四个制造台 Lv3
+当前每小时利润最高的物品卡片。
+
+- 四个台：技术中心、工作台、制药台、防具台；每台只取 `price_hour` 最高的一条。
+- 只展示单次利润和每小时利润；物品图使用等级边框色（1 灰 / 2 绿 / 3 蓝 / 4 紫 / 5 金 / 6 红）。
+- 标题下方显示**查询时间**（这批数据的实际获取时间；缓存复用保持不变，方便判断数据新鲜度）。
+- 数据源：数据帝 Pro `manufacturePro`，固定 Lv3；每个台一次请求，一张卡片最多 4 次资源。
+- **按需查询 + 12 小时缓存**：缓存期内重复查询不再请求上游；没有定时任务。
+- 图片资源：技术中心 `accessories`/`weapon`，工作台 `bullet`，制药台 `supplies`，
+  防具台 `helmets`/`backpacks`/`armor`/`chest_rigs`；按 `grade` 进等级目录，名称宽松匹配。
+- 单台获取失败时卡片显示「数据获取失败」；渲染/发图失败自动回退文字。
+
+```dotenv
+CRAFTING_ENABLED=true
+CRAFTING_CACHE_TTL=43200      # 12 小时
+CRAFTING_IMAGE_MAX_KB=350
+```
+
+- 卡片预览：`.venv/Scripts/python.exe scripts/render_crafting_preview.py`
+  → `assets/_preview/crafting_profit_preview.jpg`。
+- 接口字段口径、图片映射与验收见 [docs/11-制造台利润.md](docs/11-制造台利润.md)。
+
 ## 本地联调工具（不需要 token / 不需要装 NapCat）
 
 | 脚本 | 用途 |
@@ -251,14 +312,17 @@ DeltaForceQQbot/
 │   ├── config.py                 # .env → Settings
 │   ├── logging_setup.py          # 把标准库 logging 接到 loguru（NoneBot 2.5 不再自动接管）
 │   ├── runtime.py                # 运行时装配（客户端/服务/限流器）
-│   ├── adapters/                 # orzice/LLM/每日密码客户端、SQLite、本地表情包、TTL 缓存、限流
-│   ├── models/                   # 数据模型（字段语义见 loadout.py 文档）与入口解析
-│   └── services/                 # gear_loadout、chat、daily_password、commands、text
+│   ├── adapters/                 # orzice/LLM/每日密码/B站直播客户端、SQLite、表情包、缓存、限流
+│   ├── models/                   # 数据模型（字段语义见 loadout.py / crafting.py 文档）
+│   ├── render/                   # Jinja2 模板 + Playwright：卡战备/每日密码/直播/制造台卡片
+│   └── services/                 # gear_loadout、chat、daily_password、live_watch、crafting、commands、text
 ├── plugins/gear_loadout.py       # 卡战备入口
 ├── plugins/llm_chat.py           # 群聊机器人入口（记录器/聊天/清理指令）
 ├── plugins/daily_password.py     # 每日密码入口（查询 + 0:15 预热 + 11:00 推送）
+├── plugins/live_watch.py         # B站直播订阅入口（命令 + 180s 轮询 + 卡片推送）
+├── plugins/crafting.py           # 制造台利润入口（/制造利润 + 卡片）
 ├── scripts/                      # 联调与运维脚本
-├── tests/                        # 224 个用例，含真实响应契约测试
+├── tests/                        # 300 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档
 ```
 
@@ -266,15 +330,18 @@ DeltaForceQQbot/
 
 | 文档 | 内容 |
 | --- | --- |
-| [docs/00-项目规划.md](docs/00-项目规划.md) | 目标、服务路线图（v2 群聊机器人 / v3 制造台利润 / v4 主播开播监听）、架构、里程碑、风险 |
+| [docs/00-项目规划.md](docs/00-项目规划.md) | 目标、服务路线图、架构、里程碑、风险 |
 | [docs/01-卡战备-功能设计.md](docs/01-卡战备-功能设计.md) | 游戏机制与**已核对的字段语义**、命令设计、验证与验收 |
 | [docs/02-数据源接口清单.md](docs/02-数据源接口清单.md) | 接口规格、真实门槛与分组结构、成本与缓存策略 |
 | [docs/03-部署与联调.md](docs/03-部署与联调.md) | 服务器部署（含 NapCat 原生安装 + systemd）、扫码登录、反向 WS 配置、运维与本机踩坑记录 |
 | [docs/04-卡片渲染设计.md](docs/04-卡片渲染设计.md) | 卡片渲染：模板结构、图片目录映射、等级配色、缓存与降级 |
-| [docs/05-V1交接总结.md](docs/05-V1交接总结.md) | **V1 交接总结（新会话先读）**：现状、关键事实、部署、流程约定、v2 起点 |
+| [docs/05-V1交接总结.md](docs/05-V1交接总结.md) | **V1 交接总结**：现状、关键事实、部署、流程约定、v2 起点 |
 | [docs/06-LLM群聊机器人.md](docs/06-LLM群聊机器人.md) | v2 群聊机器人：触发、上下文、图片、权限、配置与验收 |
-| [docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md) | **V2 交接总结**：当前线上状态、聊天/表情包/人格、部署运维、每日密码接入点 |
+| [docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md) | **V2 历史交接**：聊天/表情包/人格、部署运维、每日密码接入点 |
 | [docs/08-每日密码.md](docs/08-每日密码.md) | **V3 每日密码**：免费接口实测、缓存/推送规则、配置、部署与验收 |
+| [docs/09-V3交接总结.md](docs/09-V3交接总结.md) | **V3 功能交接与下一版规划**：当前功能/生产配置、已知问题、直播订阅与制作台利润接入建议 |
+| [docs/10-直播订阅.md](docs/10-直播订阅.md) | **V4 B站直播订阅**：接口实测（UA/412）、全局订阅、轮询去重、卡片与压缩、配置与验收 |
+| [docs/11-制造台利润.md](docs/11-制造台利润.md) | **V5 制造台利润**：Pro 接口字段口径、四台 Lv3、宽松图片索引、12h 缓存、卡片与费用 |
 
 ## 开发流程约定
 

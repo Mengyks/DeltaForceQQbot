@@ -1,0 +1,48 @@
+{
+  "code": 0,
+  "msg": "success",
+  "message": "success",
+  "ttl": 1,
+  "data": {
+    "3493280926927123": {
+      "title": "栗子开播了",
+      "room_id": 1883376823,
+      "uid": 3493280926927123,
+      "online": 149,
+      "live_time": 1792912598,
+      "live_status": 1,
+      "short_id": 0,
+      "area": 12,
+      "area_name": "手游直播",
+      "area_v2_id": 255,
+      "area_v2_name": "明日方舟",
+      "area_v2_parent_name": "手游",
+      "area_v2_parent_id": 3,
+      "uname": "seven栗子",
+      "tag_name": "明日方舟",
+      "tags": "明日方舟主播直播间",
+      "cover_from_user": "https://i0.hdslb.com/bfs/live/new_room_cover/710922518522c07a5e4108afddd0da55e735aa7a.jpg",
+      "keyframe": "https://i0.hdslb.com/bfs/live-key-frame/keyframe10251532001883376823f3w8c7.jpg"
+    },
+    "672328094": {
+      "title": "【3D】不小众了那我不看了",
+      "room_id": 22637261,
+      "uid": 672328094,
+      "online": 0,
+      "live_time": 0,
+      "live_status": 2,
+      "short_id": 0,
+      "area": 6,
+      "area_name": "生活娱乐",
+      "area_v2_id": 371,
+      "area_v2_name": "虚拟日常",
+      "area_v2_parent_name": "虚拟主播",
+      "area_v2_parent_id": 9,
+      "uname": "嘉然今天吃什么",
+      "tag_name": "日常,学习,萌宠,厨艺,手机直播",
+      "tags": "",
+      "cover_from_user": "https://i0.hdslb.com/bfs/live/new_room_cover/7b2730c89843cf18b75df809d731fa458d18f933.jpg",
+      "keyframe": ""
+    }
+  }
+}

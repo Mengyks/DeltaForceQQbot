@@ -85,6 +85,23 @@ class Settings(BaseSettings):
     daily_password_tz_offset: int = 8  # 服务器通常是 UTC，按 UTC+8 计算“今天”、0:15 和 11:00
     daily_password_history_days: int = 7  # 本地快照/推送记录保留天数
 
+    # 直播订阅（v4，B站）：全局订阅，开播时推送到 CHAT_GROUPS
+    live_enabled: bool = False
+    live_db_path: Path = PROJECT_ROOT / "data" / "live.sqlite3"
+    live_poll_interval: int = 180  # 秒；批量查询所有订阅
+    live_timeout: float = 15.0
+    live_max_subscriptions: int = 50
+    live_history_days: int = 30  # 开播通知记录保留天数
+    live_image_max_kb: int = 350  # 卡片压缩目标；超过后自动降质量
+    live_rate_user: int = 5  # 添加/删除/查询，次/分钟
+    live_rate_group: int = 20
+    live_user_agent: str = ""  # 留空使用内置浏览器 UA（B站会拦截默认 python-httpx UA）
+
+    # 制造台利润（v5）：数据帝 Pro，按需查询，四个台固定 Lv3
+    crafting_enabled: bool = False
+    crafting_cache_ttl: int = 43200  # 12 小时；四个台各一次请求，缓存期内不再扣资源
+    crafting_image_max_kb: int = 350  # 卡片压缩目标；超过自动降质量
+
     # LLM（OpenAI 兼容接口）
     llm_base_url: str = "https://api.deepseek.com/v1"
     llm_api_key: str = ""

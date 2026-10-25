@@ -91,6 +91,24 @@ def make_chat_settings(tmp_path: Path, **overrides: Any) -> Settings:
     return make_settings(**base)
 
 
+def make_live_settings(tmp_path: Path, **overrides: Any) -> Settings:
+    """直播订阅测试用的确定性配置（两个推送群，不读真实 .env）。"""
+    base: dict[str, Any] = {
+        "live_enabled": True,
+        "live_db_path": tmp_path / "live.sqlite3",
+        "live_poll_interval": 180,
+        "live_timeout": 5.0,
+        "live_max_subscriptions": 50,
+        "live_history_days": 30,
+        "live_image_max_kb": 350,
+        "live_rate_user": 100,
+        "live_rate_group": 100,
+        "chat_groups": "30000,30001",
+    }
+    base.update(overrides)
+    return make_settings(**base)
+
+
 class FakeClient:
     """替代 OrziceClient：不联网，返回预设 payload 并记录调用参数。"""
 

@@ -108,17 +108,26 @@ class CardRenderer:
         template_name: str,
         screenshot_type: str = "png",
         quality: int | None = None,
+        viewport_width: int | None = None,
     ) -> bytes:
         """用指定模板渲染任意上下文；浏览器实例与页面复用。
 
         screenshot_type="jpeg" 时可用 quality 控制体积（每日密码卡片含六张背景图，
         PNG 体积过大，QQ/OneBot 链路容易超过单帧限制）。
+        viewport_width 允许不同模板使用不同宽度：直播卡片比较窄，用 720px 可以减少
+        最终截图体积，同时不必再启动第二个浏览器。
         """
         if self._browser is None:
             await self.start()
         try:
             return await asyncio.wait_for(
-                self._render_locked(context, template_name, screenshot_type, quality),
+                self._render_locked(
+                    context,
+                    template_name,
+                    screenshot_type,
+                    quality,
+                    viewport_width,
+                ),
                 timeout=self._timeout,
             )
         except asyncio.TimeoutError as exc:
@@ -136,6 +145,7 @@ class CardRenderer:
         template_name: str,
         screenshot_type: str = "png",
         quality: int | None = None,
+        viewport_width: int | None = None,
     ) -> bytes:
         async with self._lock:
             data = dict(context.__dict__) if hasattr(context, "__dict__") else dict(context)  # type: ignore[arg-type]
@@ -148,6 +158,8 @@ class CardRenderer:
             html_path.write_text(html, encoding="utf-8")
 
             page = await self._ensure_page()
+            width = int(viewport_width) if viewport_width else self._viewport["width"]
+            await page.set_viewport_size({"width": width, "height": self._viewport["height"]})
             await page.goto(html_path.as_uri(), wait_until="load")
             await page.wait_for_timeout(120)  # 等字体与图片稳定
             shot_options: dict = {"full_page": True, "type": screenshot_type}

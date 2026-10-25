@@ -30,7 +30,12 @@ from deltaforce_bot.services.chat import (
     ChatUnavailable,
     split_chat_messages,
 )
-from deltaforce_bot.services.text import COMMAND_PATTERN, DAILY_PASSWORD_COMMAND_PATTERN
+from deltaforce_bot.services.text import (
+    COMMAND_PATTERN,
+    CRAFTING_COMMAND_PATTERN,
+    DAILY_PASSWORD_COMMAND_PATTERN,
+    LIVE_COMMAND_PATTERN,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +55,8 @@ def _is_command(text: str) -> bool:
     return bool(
         COMMAND_PATTERN.match(stripped)
         or DAILY_PASSWORD_COMMAND_PATTERN.match(stripped)
+        or LIVE_COMMAND_PATTERN.match(stripped)
+        or CRAFTING_COMMAND_PATTERN.match(stripped)
         or stripped.startswith("上下文清理")
         or CONTEXT_COMMAND_PATTERN.match(stripped)
     )

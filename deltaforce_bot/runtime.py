@@ -14,16 +14,21 @@ from deltaforce_bot.adapters.chat_memory import ChatMemory
 from deltaforce_bot.adapters.daily_password import DailyPasswordClient
 from deltaforce_bot.adapters.daily_password_store import DailyPasswordStore
 from deltaforce_bot.adapters.llm import LLMClient
+from deltaforce_bot.adapters.live_bilibili import BilibiliLiveClient
+from deltaforce_bot.adapters.live_store import LiveStore
 from deltaforce_bot.adapters.memes import MemeLibrary
 from deltaforce_bot.adapters.orzice import OrziceClient
 from deltaforce_bot.adapters.ratelimit import SlidingWindowLimiter
 from deltaforce_bot.config import Settings, get_settings
 from deltaforce_bot.models.gate import GateConfig, load_gate_config
 from deltaforce_bot.render.assets import AssetLibrary
+from deltaforce_bot.render.crafting_assets import CraftingAssetLibrary
 from deltaforce_bot.render.renderer import CardRenderer
 from deltaforce_bot.services.chat import ChatService
+from deltaforce_bot.services.crafting import CraftingService
 from deltaforce_bot.services.daily_password import DailyPasswordService
 from deltaforce_bot.services.gear_loadout import GearLoadoutService
+from deltaforce_bot.services.live_watch import LiveWatchService
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +146,66 @@ class Runtime:
                     except Exception:  # noqa: BLE001
                         pass
 
+        # 直播订阅（v4，B站）：全局订阅，独立 SQLite；关闭时不创建任何对象
+        self.live: LiveWatchService | None = None
+        self.live_client: BilibiliLiveClient | None = None
+        self.live_store: LiveStore | None = None
+        self.live_user_limiter = SlidingWindowLimiter(settings.live_rate_user)
+        self.live_group_limiter = SlidingWindowLimiter(settings.live_rate_group)
+        if settings.live_enabled:
+            live_store: LiveStore | None = None
+            try:
+                live_store = LiveStore(settings.live_db_path)
+                live_client = BilibiliLiveClient(settings)
+                self.live = LiveWatchService(settings, live_client, live_store)
+                self.live_client = live_client
+                self.live_store = live_store
+                logger.info(
+                    "直播订阅已启用：B站，轮询 %s 秒，推送群 %s",
+                    settings.live_poll_interval,
+                    ",".join(str(item) for item in sorted(settings.chat_group_set))
+                    or "未配置",
+                )
+                if not settings.chat_group_set:
+                    logger.warning(
+                        "直播订阅没有目标群（CHAT_GROUPS 为空），开播不会推送"
+                    )
+            except Exception as exc:  # noqa: BLE001  直播故障不能拖垮其他功能
+                logger.warning(
+                    "直播订阅初始化失败，功能关闭：%s: %s",
+                    exc.__class__.__name__,
+                    exc,
+                )
+                self.live = None
+                self.live_client = None
+                self.live_store = None
+                if live_store is not None:
+                    try:
+                        live_store.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+
+        # 制造台利润（v5）：数据帝 Pro，按需查询，12 小时缓存；关闭时不创建对象
+        self.crafting: CraftingService | None = None
+        self.crafting_assets: CraftingAssetLibrary | None = None
+        self.crafting_image_cache: TTLCache = TTLCache()
+        if settings.crafting_enabled:
+            try:
+                self.crafting_assets = CraftingAssetLibrary(settings.assets_dir)
+                self.crafting = CraftingService(settings, self.client)
+                logger.info(
+                    "制造台利润已启用：数据帝 Pro，Lv3，缓存 %s 秒",
+                    settings.crafting_cache_ttl,
+                )
+            except Exception as exc:  # noqa: BLE001  制造台故障不能拖垮其他功能
+                logger.warning(
+                    "制造台利润初始化失败，功能关闭：%s: %s",
+                    exc.__class__.__name__,
+                    exc,
+                )
+                self.crafting = None
+                self.crafting_assets = None
+
     def is_debug_group(self, group_id: int | None) -> bool:
         return group_id is not None and group_id in self.debug_groups
 
@@ -153,6 +218,13 @@ class Runtime:
             await asyncio.to_thread(self.chat_memory.close)
         if self.daily_password is not None:
             await self.daily_password.aclose()
+        if self.live is not None:
+            await self.live.aclose()
+        else:
+            if self.live_client is not None:
+                await self.live_client.aclose()
+            if self.live_store is not None:
+                await asyncio.to_thread(self.live_store.close)
         if self.renderer is not None:
             await self.renderer.close()
         await self.client.aclose()

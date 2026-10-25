@@ -1,0 +1,48 @@
+{
+  "code": 0,
+  "msg": "success",
+  "message": "success",
+  "ttl": 1,
+  "data": {
+    "2": {
+      "title": "$400 小抽跑车",
+      "room_id": 1024,
+      "uid": 2,
+      "online": 0,
+      "live_time": 0,
+      "live_status": 0,
+      "short_id": 0,
+      "area": 1,
+      "area_name": "单机联机",
+      "area_v2_id": 80,
+      "area_v2_name": "吃鸡行动",
+      "area_v2_parent_name": "网游",
+      "area_v2_parent_id": 2,
+      "uname": "碧诗",
+      "tag_name": "以撒,minecraft,饥荒,彩虹六号,东方",
+      "tags": "绝地求生",
+      "cover_from_user": "https://i0.hdslb.com/bfs/live/new_room_cover/96ee5bfd0279a0f18b190340334f43f473038288.jpg",
+      "keyframe": ""
+    },
+    "672328094": {
+      "title": "【3D】不小众了那我不看了",
+      "room_id": 22637261,
+      "uid": 672328094,
+      "online": 0,
+      "live_time": 0,
+      "live_status": 2,
+      "short_id": 0,
+      "area": 6,
+      "area_name": "生活娱乐",
+      "area_v2_id": 371,
+      "area_v2_name": "虚拟日常",
+      "area_v2_parent_name": "虚拟主播",
+      "area_v2_parent_id": 9,
+      "uname": "嘉然今天吃什么",
+      "tag_name": "日常,学习,萌宠,厨艺,手机直播",
+      "tags": "",
+      "cover_from_user": "https://i0.hdslb.com/bfs/live/new_room_cover/7b2730c89843cf18b75df809d731fa458d18f933.jpg",
+      "keyframe": ""
+    }
+  }
+}

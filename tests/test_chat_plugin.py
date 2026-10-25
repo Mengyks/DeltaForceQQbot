@@ -90,6 +90,11 @@ def test_command_detection(plugin) -> None:
     assert plugin.module._is_command("上下文清理 提取摘要") is True
     assert plugin.module._is_command("每日密码") is True
     assert plugin.module._is_command("/每日密码") is True
+    assert plugin.module._is_command("/直播订阅 添加 672328094") is True
+    assert plugin.module._is_command("直播订阅 添加 672328094") is False
+    assert plugin.module._is_command("/制造利润") is True
+    assert plugin.module._is_command("/每日利润") is True
+    assert plugin.module._is_command("制造利润") is False
     assert plugin.module._is_command("今天天气真好") is False
 
 

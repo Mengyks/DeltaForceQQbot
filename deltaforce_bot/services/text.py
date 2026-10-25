@@ -23,10 +23,17 @@ from deltaforce_bot.services.gear_loadout import GateResult, MAX_TARGET, MIN_TAR
 TIER_COMMAND = "卡战备"
 CUSTOM_COMMAND = "凑战备"
 DAILY_PASSWORD_COMMAND = "每日密码"
+LIVE_COMMAND = "直播订阅"
+CRAFTING_COMMAND = "制造利润"
 
 COMMAND_PATTERN = re.compile(r"^\s*[/／]\s*(?P<cmd>卡战备|凑战备)\s*(?P<args>.*)$", re.S)
 DAILY_PASSWORD_COMMAND_PATTERN = re.compile(
     r"^\s*[#＃/／]?\s*(?:每日密码|今日密码)\s*(?:查询)?\s*$"
+)
+LIVE_COMMAND_PATTERN = re.compile(r"^\s*[/／]\s*(?P<cmd>直播订阅)\s*(?P<args>.*)$", re.S)
+CRAFTING_COMMAND_PATTERN = re.compile(
+    r"^\s*[/／]\s*(?P<cmd>制造利润|制造台利润|每日利润)\s*(?P<args>.*)$",
+    re.S,
 )
 
 EXCHANGE_KEYWORDS = ("兑换", "军需处", "军需")
@@ -105,6 +112,59 @@ class Query:
     target: int | None = None
     slots: SlotFlags = field(default_factory=SlotFlags)
     error: str | None = None
+
+
+@dataclass(frozen=True)
+class LiveCommandQuery:
+    action: Literal["help", "add", "remove", "list", "query"]
+    uid: str = ""
+    error: str | None = None
+
+
+_LIVE_ACTIONS = {
+    "添加": "add",
+    "订阅": "add",
+    "add": "add",
+    "删除": "remove",
+    "取消": "remove",
+    "remove": "remove",
+    "列表": "list",
+    "list": "list",
+    "查询": "query",
+    "状态": "query",
+    "query": "query",
+}
+
+
+def parse_live_command(text: str) -> LiveCommandQuery | None:
+    """解析 /直播订阅 命令；不是本命令返回 None。"""
+    match = LIVE_COMMAND_PATTERN.match(normalize(text))
+    if not match:
+        return None
+
+    tokens = (match.group("args") or "").split()
+    if not tokens:
+        return LiveCommandQuery(action="help")
+
+    action = _LIVE_ACTIONS.get(tokens[0].lower())
+    if action is None:
+        return LiveCommandQuery(
+            action="help",
+            error=f"无法识别操作「{tokens[0]}」，发送 /直播订阅 查看用法。",
+        )
+    if action == "list":
+        if len(tokens) > 1:
+            return LiveCommandQuery(action="help", error="列表命令不需要额外参数。")
+        return LiveCommandQuery(action="list")
+
+    if len(tokens) < 2:
+        return LiveCommandQuery(
+            action="help",
+            error="请给出 B 站 UID，例如：/直播订阅 添加 672328094",
+        )
+    if len(tokens) > 2:
+        return LiveCommandQuery(action="help", error="UID 后面不要再带其它参数。")
+    return LiveCommandQuery(action=action, uid=tokens[1])
 
 
 def normalize(text: str) -> str:
@@ -314,6 +374,37 @@ def format_help(config: GateConfig, *, custom_enabled: bool = False) -> str:
     if custom_enabled:
         lines.append(f"另有 /{CUSTOM_COMMAND} <目标战备值> 可自定义凑战备。")
     return "\n".join(lines)
+
+
+def format_live_help() -> str:
+    return "\n".join(
+        [
+            "【直播订阅】B站开播提醒",
+            "",
+            "用法：",
+            "/直播订阅 添加 <B站UID>",
+            "/直播订阅 删除 <B站UID>",
+            "/直播订阅 列表",
+            "/直播订阅 查询 <B站UID>",
+            "",
+            "UID 是个人空间地址里的数字，不是直播间号。",
+            "订阅对两个群同时生效；只有群主或 SUPERUSERS 可以添加/删除。",
+        ]
+    )
+
+
+def format_crafting_help() -> str:
+    return "\n".join(
+        [
+            "【每日利润】特勤处制造台 Lv3",
+            "",
+            "用法：",
+            "/制造利润",
+            "（也支持 /制造台利润、/每日利润）",
+            "",
+            "四个台各取每小时利润最高的物品；结果缓存 12 小时。",
+        ]
+    )
 
 
 def format_gate_result(result: GateResult, *, top: int = 3) -> str:
