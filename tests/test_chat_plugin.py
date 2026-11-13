@@ -98,6 +98,10 @@ def test_command_detection(plugin) -> None:
     assert plugin.module._is_command("/帮助") is True
     assert plugin.module._is_command("/help") is True
     assert plugin.module._is_command("帮助") is False
+    assert plugin.module._is_command("/waifu") is True
+    assert plugin.module._is_command("/每天日尊挑战") is True
+    assert plugin.module._is_command("/每日天尊挑战") is True
+    assert plugin.module._is_command("waifu") is False
     assert plugin.module._is_command("今天天气真好") is False
 
 

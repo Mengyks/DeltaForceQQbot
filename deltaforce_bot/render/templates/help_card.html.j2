@@ -7,7 +7,7 @@
   html, body { margin: 0; padding: 0; background: #f2f3f5; }
   body {
     width: 1000px;
-    height: 1300px;
+    height: 1450px;
     position: relative;
     font-family: "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "WenQuanYi Zen Hei", "WenQuanYi Micro Hei", "PingFang SC", sans-serif;
     color: #20242b;
@@ -34,7 +34,7 @@
   .page {
     position: relative;
     width: 1000px;
-    height: 1300px;
+    height: 1450px;
     padding: 26px 32px 28px;
     display: flex;
     flex-direction: column;
@@ -103,6 +103,17 @@
     padding: 12px 14px 12px;
     min-height: 136px;
   }
+  .feature.wide {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 104px;
+  }
+  .feature.wide .feature-head { margin-bottom: 0; flex: 0 0 auto; }
+  .feature.wide .cmd { margin-top: 0; }
+  .feature.wide .example { margin-top: 0; }
+  .feature.wide .note { margin-top: 0; margin-left: auto; text-align: right; }
   .feature-head {
     display: flex;
     align-items: center;
@@ -177,7 +188,7 @@
   <main class="panel">
     <div class="grid">
       {% for section in sections %}
-      <section class="feature" style="border-left-color: {{ section.accent }}">
+      <section class="feature{% if loop.last and (sections | length) % 2 == 1 %} wide{% endif %}" style="border-left-color: {{ section.accent }}{% if section.badge == '娱乐' %}; background: linear-gradient(90deg, {{ section.accent }}14, rgba(250, 250, 252, .94) 42%){% endif %}">
         <div class="feature-head">
           <span class="feature-title">{{ section.title }}</span>
           <span class="badge">{{ section.badge }}</span>

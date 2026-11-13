@@ -90,6 +90,33 @@ HELP_SECTIONS: tuple[HelpSection, ...] = (
         ),
         note="仅 SUPERUSERS 可用",
     ),
+    HelpSection(
+        title="猪猪表情包",
+        badge="娱乐",
+        accent="#d977a8",
+        commands=(
+            HelpCommandSpec("发「猪 / zhu / pig / 🐖 / 🐷」", "猪"),
+        ),
+        note="精确触发，随机回一张本地猪图",
+    ),
+    HelpSection(
+        title="猪结婚",
+        badge="娱乐",
+        accent="#e07a5f",
+        commands=(
+            HelpCommandSpec("/waifu", "/waifu"),
+        ),
+        note="每天每群配对一次，重复发送结果不变",
+    ),
+    HelpSection(
+        title="每日天尊挑战",
+        badge="娱乐",
+        accent="#2f8f9d",
+        commands=(
+            HelpCommandSpec("/每日天尊挑战", "/每日天尊挑战"),
+        ),
+        note="随机怪物 + 武器，同一人当天结果不变",
+    ),
 )
 
 

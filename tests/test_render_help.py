@@ -37,6 +37,9 @@ def test_context_uses_background_and_sections(tmp_path: Path) -> None:
         "直播订阅",
         "群聊",
         "管理员",
+        "猪猪表情包",
+        "猪结婚",
+        "每日天尊挑战",
     ]
     assert context.sections[0].commands[0].command.startswith("/卡战备")
     assert context.sections[0].commands[0].example == "/卡战备 巴克什 绝密"
@@ -63,6 +66,10 @@ def test_template_contains_help_fields(tmp_path: Path) -> None:
     assert "/每日密码" in html
     assert "/制造利润" in html
     assert "/直播订阅 添加" in html
+    assert "/waifu" in html
+    assert "猪 / zhu / pig" in html
+    assert "/每日天尊挑战" in html
+    assert "feature wide" in html
     assert "@五点" in html
     assert "背景" not in html  # 模板里不应出现占位文案
     assert "background-image" in html

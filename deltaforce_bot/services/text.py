@@ -39,6 +39,13 @@ HELP_COMMAND_PATTERN = re.compile(
     r"^\s*[/／]\s*(?P<cmd>帮助|help|帮助命令|功能)(?P<args>.*)$",
     re.I | re.S,
 )
+WAIFU_COMMAND_PATTERN = re.compile(
+    r"^\s*[/／]\s*(?:waifu|每天日尊挑战)\s*$",
+    re.I,
+)
+DAILY_CHALLENGE_COMMAND_PATTERN = re.compile(
+    r"^\s*[/／]\s*每日天尊挑战\s*$",
+)
 
 EXCHANGE_KEYWORDS = ("兑换", "军需处", "军需")
 

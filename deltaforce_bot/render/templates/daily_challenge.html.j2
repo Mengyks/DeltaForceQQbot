@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>每日天尊挑战</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { width: 1600px; height: 900px; margin: 0; overflow: hidden; }
+  body {
+    position: relative; background: #05070b; color: #f7f1e3;
+    font-family: "Microsoft YaHei", "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif;
+  }
+  .bg {
+    position: absolute; inset: 0;
+    background-color: #05070b;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    {% if background_url %}background-image: url("{{ background_url }}");{% endif %}
+    filter: brightness(.62) saturate(.92);
+    transform: scale(1.03);
+  }
+  .bg::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 50% 34%, rgba(255, 196, 92, .16), transparent 44%),
+      linear-gradient(180deg, rgba(4, 6, 10, .42), rgba(4, 6, 10, .66) 55%, rgba(2, 3, 6, .9));
+    box-shadow: inset 0 0 280px 70px rgba(0, 0, 0, .9);
+  }
+  .frame {
+    position: absolute; inset: 22px; border: 1px solid rgba(235, 190, 100, .26);
+    border-radius: 30px; pointer-events: none;
+  }
+  .frame::before, .frame::after {
+    content: ""; position: absolute; width: 70px; height: 70px;
+    border: 1px solid rgba(235, 190, 100, .5);
+  }
+  .frame::before { left: -1px; top: -1px; border-right: 0; border-bottom: 0; border-radius: 30px 0 0 0; }
+  .frame::after { right: -1px; bottom: -1px; border-left: 0; border-top: 0; border-radius: 0 0 30px 0; }
+  .content {
+    position: relative; z-index: 2; width: 100%; height: 100%;
+    padding: 42px 76px 30px; display: flex; flex-direction: column;
+  }
+  .header { text-align: center; }
+  .eyebrow {
+    font-family: Georgia, "Times New Roman", serif; font-size: 14px;
+    letter-spacing: .46em; color: #d9b46a; text-transform: uppercase;
+  }
+  h1 {
+    margin: 10px 0 6px; font-size: 60px; line-height: 1.15; font-weight: 800;
+    letter-spacing: .12em;
+    background: linear-gradient(180deg, #fff6cf 0%, #f5c76a 48%, #c4862b 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 16px rgba(245, 180, 70, .28));
+  }
+  .subtitle { font-size: 15px; letter-spacing: .3em; color: #c9bca2; }
+  .divider {
+    width: 520px; height: 1px; margin: 16px auto 0; position: relative;
+    background: linear-gradient(90deg, transparent, #b98a3e, transparent);
+  }
+  .divider::after {
+    content: ""; position: absolute; left: 50%; top: -4px; width: 9px; height: 9px;
+    transform: translateX(-50%) rotate(45deg); background: #e5b96a;
+    box-shadow: 0 0 14px rgba(229, 185, 106, .9);
+  }
+  .cards {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    gap: 34px; padding-top: 16px;
+  }
+  .card {
+    position: relative; width: 400px; height: 548px; padding: 24px 24px 22px;
+    display: flex; flex-direction: column; align-items: center;
+    border-radius: 26px; border: 1px solid rgba(238, 196, 110, .34);
+    background: linear-gradient(180deg, rgba(20, 23, 30, .88), rgba(8, 10, 14, .94));
+    box-shadow: 0 28px 70px rgba(0, 0, 0, .62), inset 0 1px 0 rgba(255, 255, 255, .07);
+    backdrop-filter: blur(16px);
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 9px; pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, .055); border-radius: 19px;
+  }
+  .card.monster { width: 470px; border-color: rgba(240, 150, 80, .42); }
+  .card.weapon { border-color: rgba(120, 180, 230, .38); }
+  .role {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 18px; letter-spacing: .22em; color: #e8c887;
+  }
+  .role::before, .role::after {
+    content: ""; width: 30px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232, 200, 135, .8));
+  }
+  .role::after { transform: rotate(180deg); }
+  .card.monster .role { color: #ffc08c; }
+  .card.weapon .role { color: #a9d4ff; }
+  .icon-area {
+    position: relative; flex: 1; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .glow {
+    position: absolute; z-index: 0; width: 270px; height: 270px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 190, 90, .2), transparent 70%);
+    filter: blur(8px);
+  }
+  .icon-area img { position: relative; z-index: 1; }
+  .monster-glow { background: radial-gradient(circle, rgba(255, 130, 60, .2), transparent 70%); }
+  .weapon-glow { background: radial-gradient(circle, rgba(100, 180, 255, .18), transparent 70%); }
+  .weapon-plate {
+    position: absolute; z-index: 0; width: 252px; height: 252px; border-radius: 50%;
+    border: 1px solid rgba(120, 180, 230, .3);
+    background: radial-gradient(circle at 50% 45%, rgba(100, 170, 240, .17), rgba(10, 14, 20, .18) 62%, transparent 72%);
+    box-shadow: inset 0 0 50px rgba(100, 180, 255, .09), 0 0 60px rgba(80, 150, 220, .09);
+  }
+  .avatar-img {
+    width: 248px; height: 248px; border-radius: 50%; object-fit: cover;
+    border: 3px solid rgba(245, 200, 110, .85);
+    box-shadow: 0 0 0 8px rgba(245, 200, 110, .08), 0 20px 50px rgba(0, 0, 0, .68);
+  }
+  .monster-img {
+    width: 330px; height: 330px; object-fit: contain;
+    filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .65));
+  }
+  .weapon-img {
+    width: 152px; height: 152px; object-fit: contain;
+    image-rendering: auto;
+    filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .62)) brightness(1.2);
+  }
+  .name {
+    width: 100%; font-size: 34px; font-weight: 800; letter-spacing: .08em;
+    text-align: center; color: #fff6e6; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .card.monster .name { color: #ffd7b0; }
+  .card.weapon .name { color: #d3e8ff; }
+  .en {
+    margin-top: 7px; font-family: Georgia, "Times New Roman", serif;
+    font-size: 11px; letter-spacing: .4em; color: #9d9384; text-transform: uppercase;
+  }
+  .footer {
+    text-align: center; font-size: 13px; letter-spacing: .24em; color: #9d9384;
+    padding-bottom: 2px;
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="frame"></div>
+  <div class="content">
+    <header class="header">
+      <div class="eyebrow">Monster Hunter World</div>
+      <h1>每日天尊挑战</h1>
+      <div class="subtitle">今 日 猎 人 · 今 日 猎 物 · 今 日 武 器</div>
+      <div class="divider"></div>
+    </header>
+    <main class="cards">
+      <section class="card hunter">
+        <div class="role">今日天尊</div>
+        <div class="icon-area">
+          <div class="glow"></div>
+          {% if avatar_url %}<img class="avatar-img" src="{{ avatar_url }}">{% endif %}
+        </div>
+        <div class="name">{{ hunter_name }}</div>
+        <div class="en">The Hunter</div>
+      </section>
+      <section class="card monster">
+        <div class="role">今日猎物</div>
+        <div class="icon-area">
+          <div class="glow monster-glow"></div>
+          {% if monster_url %}<img class="monster-img" src="{{ monster_url }}">{% endif %}
+        </div>
+        <div class="name">{{ monster_name }}</div>
+        <div class="en">Target Monster</div>
+      </section>
+      <section class="card weapon">
+        <div class="role">今日武器</div>
+        <div class="icon-area">
+          <div class="glow weapon-glow"></div>
+          <div class="weapon-plate"></div>
+          {% if weapon_url %}<img class="weapon-img" src="{{ weapon_url }}">{% endif %}
+        </div>
+        <div class="name">{{ weapon_name }}</div>
+        <div class="en">Weapon Type</div>
+      </section>
+    </main>
+    <footer class="footer">每 日 0 点 重 置 · 今 日 天 尊 专 属 挑 战</footer>
+  </div>
+</body>
+</html>

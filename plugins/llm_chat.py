@@ -33,9 +33,11 @@ from deltaforce_bot.services.chat import (
 from deltaforce_bot.services.text import (
     COMMAND_PATTERN,
     CRAFTING_COMMAND_PATTERN,
+    DAILY_CHALLENGE_COMMAND_PATTERN,
     DAILY_PASSWORD_COMMAND_PATTERN,
     HELP_COMMAND_PATTERN,
     LIVE_COMMAND_PATTERN,
+    WAIFU_COMMAND_PATTERN,
 )
 
 logger = logging.getLogger(__name__)
@@ -59,6 +61,8 @@ def _is_command(text: str) -> bool:
         or LIVE_COMMAND_PATTERN.match(stripped)
         or CRAFTING_COMMAND_PATTERN.match(stripped)
         or HELP_COMMAND_PATTERN.match(stripped)
+        or WAIFU_COMMAND_PATTERN.match(stripped)
+        or DAILY_CHALLENGE_COMMAND_PATTERN.match(stripped)
         or stripped.startswith("上下文清理")
         or CONTEXT_COMMAND_PATTERN.match(stripped)
     )

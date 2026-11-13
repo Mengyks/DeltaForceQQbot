@@ -26,7 +26,7 @@ from deltaforce_bot.services.text import HELP_COMMAND_PATTERN
 
 logger = logging.getLogger(__name__)
 
-_HELP_CACHE_KEY = "help-v1"
+_HELP_CACHE_KEY = "help-v3"
 _HELP_IMAGE_TTL = 86400
 _image_cache: TTLCache = TTLCache()
 

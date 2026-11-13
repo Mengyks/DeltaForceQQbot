@@ -8,6 +8,7 @@ dependencies = [
     "nonebot-adapter-onebot>=2.4.6",
     "httpx>=0.28",
     "pydantic-settings>=2.0",
+    "pillow>=10",
 ]
 
 [project.optional-dependencies]

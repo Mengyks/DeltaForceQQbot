@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     rate_limit_group: int = 10
     debug_groups: str = ""
 
+    # 娱乐功能白名单（猪猪表情包、猪结婚、每日天尊挑战）：为空=全部关闭
+    fun_groups: str = ""
+
     # 群聊机器人（v2）
     chat_enabled: bool = False
     chat_groups: str = ""  # 允许聊天的群，英文/中文逗号分隔；为空=关闭
@@ -70,6 +73,35 @@ class Settings(BaseSettings):
     chat_meme_max_per_10min: int = 5
     chat_meme_max_bytes: int = 8 * 1024 * 1024
     chat_meme_recent_exclude: int = 8  # 避开最近发过的 N 张
+
+    # 猪猪表情包（独立功能，不依赖聊天）：群友发「猪 / zhu / pig / 🐖 / 🐷」时随机回一张
+    pig_meme_enabled: bool = True
+    pig_meme_dir: Path = PROJECT_ROOT / "assets" / "memes" / "pig"
+    pig_meme_cooldown: int = 5  # 秒；同一个群两次触发的冷却（按群隔离）
+    pig_meme_max_bytes: int = 8 * 1024 * 1024
+    pig_meme_recent_exclude: int = 8  # 避开最近发过的 N 张；0 表示不限制
+
+    # 猪结婚（/waifu、/每天日尊挑战）：每天每群形成互不重叠的配对
+    waifu_enabled: bool = True
+    waifu_db_path: Path = PROJECT_ROOT / "data" / "waifu.sqlite3"
+    waifu_template: Path = PROJECT_ROOT / "assets" / "memes" / "waifu" / "猪结婚.jpg"
+    waifu_keep_days: int = 2  # 只保留今天和昨天，避免图片 BLOB 越积越多
+    waifu_avatar_timeout: float = 10.0
+    waifu_avatar_max_bytes: int = 5 * 1024 * 1024
+    waifu_max_attempts: int = 3  # 头像失败时最多尝试几个候选
+
+    # 每日天尊挑战（/每日天尊挑战）：随机怪物 + 武器 + 发送者头像 → HTML 截图
+    daily_challenge_enabled: bool = True
+    daily_challenge_db_path: Path = PROJECT_ROOT / "data" / "daily_challenge.sqlite3"
+    daily_challenge_monster_dir: Path = PROJECT_ROOT / "assets" / "monsters"
+    daily_challenge_weapon_dir: Path = PROJECT_ROOT / "assets" / "weapons"
+    daily_challenge_background: Path = (
+        PROJECT_ROOT / "assets" / "monster_background" / "MonsterBackground.jpeg"
+    )
+    daily_challenge_keep_days: int = 2
+    daily_challenge_image_max_kb: int = 350
+    daily_challenge_avatar_timeout: float = 10.0
+    daily_challenge_avatar_max_bytes: int = 5 * 1024 * 1024
 
     # 每日密码（v3）：免费数据源，同一天只取一次，独立 SQLite 缓存
     daily_password_enabled: bool = False
@@ -139,6 +171,11 @@ class Settings(BaseSettings):
             if part.isdigit():
                 ids.add(int(part))
         return ids
+
+    @property
+    def fun_group_set(self) -> set[int]:
+        """娱乐功能开放群；为空时猪猪表情包/猪结婚/每日天尊挑战全部关闭。"""
+        return self._parse_ints(self.fun_groups)
 
     @staticmethod
     def _parse_ints(value: str) -> set[int]:

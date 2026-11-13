@@ -8,9 +8,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from datetime import datetime, timedelta, timezone
 
 from deltaforce_bot.adapters.cache import SingleFlight, TTLCache
 from deltaforce_bot.adapters.chat_memory import ChatMemory
+from deltaforce_bot.adapters.daily_challenge_assets import ChallengeAssetCatalog
+from deltaforce_bot.adapters.daily_challenge_store import DailyChallengeStore
 from deltaforce_bot.adapters.daily_password import DailyPasswordClient
 from deltaforce_bot.adapters.daily_password_store import DailyPasswordStore
 from deltaforce_bot.adapters.llm import LLMClient
@@ -19,16 +22,22 @@ from deltaforce_bot.adapters.live_store import LiveStore
 from deltaforce_bot.adapters.memes import MemeLibrary
 from deltaforce_bot.adapters.orzice import OrziceClient
 from deltaforce_bot.adapters.ratelimit import SlidingWindowLimiter
+from deltaforce_bot.adapters.waifu_avatar import WaifuAvatarClient
+from deltaforce_bot.adapters.waifu_store import WaifuStore
 from deltaforce_bot.config import Settings, get_settings
 from deltaforce_bot.models.gate import GateConfig, load_gate_config
 from deltaforce_bot.render.assets import AssetLibrary
 from deltaforce_bot.render.crafting_assets import CraftingAssetLibrary
 from deltaforce_bot.render.renderer import CardRenderer
+from deltaforce_bot.render.waifu_card import load_template
 from deltaforce_bot.services.chat import ChatService
 from deltaforce_bot.services.crafting import CraftingService
+from deltaforce_bot.services.daily_challenge import DailyChallengeService
 from deltaforce_bot.services.daily_password import DailyPasswordService
 from deltaforce_bot.services.gear_loadout import GearLoadoutService
 from deltaforce_bot.services.live_watch import LiveWatchService
+from deltaforce_bot.services.pig_meme import PigMemeService
+from deltaforce_bot.services.waifu import WaifuService
 
 logger = logging.getLogger(__name__)
 
@@ -206,6 +215,162 @@ class Runtime:
                 self.crafting = None
                 self.crafting_assets = None
 
+        # 猪猪表情包（独立功能，不依赖聊天）：精确触发词 + 按群 5 秒冷却
+        self.pig_meme: PigMemeService | None = None
+        if settings.pig_meme_enabled:
+            try:
+                self.pig_meme = PigMemeService(
+                    settings.pig_meme_dir,
+                    max_bytes=settings.pig_meme_max_bytes,
+                    cooldown=settings.pig_meme_cooldown,
+                    recent_exclude=settings.pig_meme_recent_exclude,
+                )
+                if self.pig_meme.available:
+                    logger.info(
+                        "猪猪表情包已启用：%s 张，同群冷却 %s 秒（%s）",
+                        self.pig_meme.count,
+                        settings.pig_meme_cooldown,
+                        settings.pig_meme_dir,
+                    )
+                else:
+                    logger.warning(
+                        "猪猪表情包已启用但目录为空或不可读：%s",
+                        settings.pig_meme_dir,
+                    )
+            except Exception as exc:  # noqa: BLE001  表情包故障不能拖垮其他功能
+                logger.warning(
+                    "猪猪表情包初始化失败，功能关闭：%s: %s",
+                    exc.__class__.__name__,
+                    exc,
+                )
+                self.pig_meme = None
+
+        # 猪结婚（/waifu、/每天日尊挑战）：每天每群不重叠配对，SQLite 持久化
+        self.waifu: WaifuService | None = None
+        self.waifu_store: WaifuStore | None = None
+        self.waifu_avatar: WaifuAvatarClient | None = None
+        if settings.waifu_enabled:
+            store: WaifuStore | None = None
+            avatar: WaifuAvatarClient | None = None
+            try:
+                template = load_template(settings.waifu_template)
+                store = WaifuStore(settings.waifu_db_path)
+                cutoff = (
+                    datetime.now(timezone(timedelta(hours=8)))
+                    - timedelta(days=max(settings.waifu_keep_days - 1, 0))
+                ).strftime("%Y-%m-%d")
+                removed = store.prune_before(cutoff)
+                avatar = WaifuAvatarClient(
+                    timeout=settings.waifu_avatar_timeout,
+                    max_bytes=settings.waifu_avatar_max_bytes,
+                )
+                self.waifu = WaifuService(
+                    store,
+                    avatar,
+                    template,
+                    max_attempts=settings.waifu_max_attempts,
+                    keep_days=settings.waifu_keep_days,
+                )
+                self.waifu_store = store
+                self.waifu_avatar = avatar
+                logger.info(
+                    "猪结婚已启用：模板 %s，保留 %s 天%s",
+                    settings.waifu_template,
+                    settings.waifu_keep_days,
+                    f"，清理 {removed} 组旧配对" if removed else "",
+                )
+            except Exception as exc:  # noqa: BLE001  猪结婚故障不能拖垮其他功能
+                logger.warning(
+                    "猪结婚初始化失败，功能关闭：%s: %s",
+                    exc.__class__.__name__,
+                    exc,
+                )
+                self.waifu = None
+                self.waifu_store = None
+                self.waifu_avatar = None
+                if store is not None:
+                    try:
+                        store.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+
+        # 每日天尊挑战（/每日天尊挑战）：随机怪物/武器 + 头像 → HTML 截图
+        self.daily_challenge: DailyChallengeService | None = None
+        self.daily_challenge_store: DailyChallengeStore | None = None
+        self.daily_challenge_avatar: WaifuAvatarClient | None = None
+        if settings.daily_challenge_enabled:
+            challenge_store: DailyChallengeStore | None = None
+            challenge_avatar: WaifuAvatarClient | None = None
+            try:
+                monsters = ChallengeAssetCatalog(
+                    settings.daily_challenge_monster_dir, label="怪物"
+                )
+                weapons = ChallengeAssetCatalog(
+                    settings.daily_challenge_weapon_dir, label="武器"
+                )
+                challenge_store = DailyChallengeStore(
+                    settings.daily_challenge_db_path
+                )
+                cutoff = (
+                    datetime.now(timezone(timedelta(hours=8)))
+                    - timedelta(
+                        days=max(settings.daily_challenge_keep_days - 1, 0)
+                    )
+                ).strftime("%Y-%m-%d")
+                removed = challenge_store.prune_before(cutoff)
+                challenge_avatar = WaifuAvatarClient(
+                    timeout=settings.daily_challenge_avatar_timeout,
+                    max_bytes=settings.daily_challenge_avatar_max_bytes,
+                )
+                self.daily_challenge = DailyChallengeService(
+                    challenge_store,
+                    challenge_avatar,
+                    monsters,
+                    weapons,
+                    settings.daily_challenge_background,
+                    self.renderer,
+                    keep_days=settings.daily_challenge_keep_days,
+                    image_max_kb=settings.daily_challenge_image_max_kb,
+                )
+                self.daily_challenge_store = challenge_store
+                self.daily_challenge_avatar = challenge_avatar
+                if self.daily_challenge.available:
+                    logger.info(
+                        "每日天尊挑战已启用：怪物 %s 张、武器 %s 种，缓存 %s 天%s",
+                        monsters.count,
+                        weapons.count,
+                        settings.daily_challenge_keep_days,
+                        f"，清理 {removed} 条旧缓存" if removed else "",
+                    )
+                else:
+                    logger.warning(
+                        "每日天尊挑战素材/背景/渲染器不可用，功能不会响应"
+                    )
+            except Exception as exc:  # noqa: BLE001  挑战故障不能拖垮其他功能
+                logger.warning(
+                    "每日天尊挑战初始化失败，功能关闭：%s: %s",
+                    exc.__class__.__name__,
+                    exc,
+                )
+                self.daily_challenge = None
+                self.daily_challenge_store = None
+                self.daily_challenge_avatar = None
+                if challenge_store is not None:
+                    try:
+                        challenge_store.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+
+        if not settings.fun_group_set:
+            logger.warning(
+                "FUN_GROUPS 为空：猪猪表情包/猪结婚/每日天尊挑战不会响应任何群"
+            )
+        else:
+            logger.info(
+                "娱乐功能开放群：%s",
+                ",".join(str(item) for item in sorted(settings.fun_group_set)),
+            )
+
     def is_debug_group(self, group_id: int | None) -> bool:
         return group_id is not None and group_id in self.debug_groups
 
@@ -225,6 +390,14 @@ class Runtime:
                 await self.live_client.aclose()
             if self.live_store is not None:
                 await asyncio.to_thread(self.live_store.close)
+        if self.waifu_avatar is not None:
+            await self.waifu_avatar.aclose()
+        if self.waifu_store is not None:
+            await asyncio.to_thread(self.waifu_store.close)
+        if self.daily_challenge_avatar is not None:
+            await self.daily_challenge_avatar.aclose()
+        if self.daily_challenge_store is not None:
+            await asyncio.to_thread(self.daily_challenge_store.close)
         if self.renderer is not None:
             await self.renderer.close()
         await self.client.aclose()

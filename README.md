@@ -1,18 +1,26 @@
 # DeltaForceQQbot
 
-> **接手开发 / 新会话请先读 [docs/14-V6交接总结.md](docs/14-V6交接总结.md)**（当前功能/配置/架构/运维），
-> 掉线恢复看 [docs/13-掉线重启指南.md](docs/13-掉线重启指南.md)；各功能细节看
+> **接手开发 / 新会话请先读 [docs/19-当前交接文档.md](docs/19-当前交接文档.md)**（当前功能/机制/架构/配置/部署/已知问题），
+> 掉线恢复看 [docs/13-掉线重启指南.md](docs/13-掉线重启指南.md)；群白名单/聊天开关看
+> [docs/15-群聊白名单与聊天开关.md](docs/15-群聊白名单与聊天开关.md)；各功能细节看
 > [docs/10-直播订阅.md](docs/10-直播订阅.md)、[docs/11-制造台利润.md](docs/11-制造台利润.md)、
-> [docs/12-帮助命令.md](docs/12-帮助命令.md)、[docs/08-每日密码.md](docs/08-每日密码.md)，
-> 历史背景看 [docs/05-V1交接总结.md](docs/05-V1交接总结.md)、[docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md)、[docs/09-V3交接总结.md](docs/09-V3交接总结.md)。
+> [docs/12-帮助命令.md](docs/12-帮助命令.md)、[docs/08-每日密码.md](docs/08-每日密码.md)、
+> [docs/16-猪猪表情包.md](docs/16-猪猪表情包.md)、[docs/17-猪结婚.md](docs/17-猪结婚.md)、
+> [docs/18-每日天尊挑战.md](docs/18-每日天尊挑战.md)，
+> 历史背景看 [docs/05-V1交接总结.md](docs/05-V1交接总结.md)、[docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md)、[docs/09-V3交接总结.md](docs/09-V3交接总结.md)、[docs/14-V6交接总结.md](docs/14-V6交接总结.md)。
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
 **当前状态：v0.9.0（帮助页，已部署待验收）** —— v1 卡战备、v2 群聊机器人、v3 每日密码、v4 B站直播订阅、v5 制造台利润均已上线；
-v6 帮助页已完成：`/帮助` 返回五点老师的功能指令与示例图片卡片，314 个自动化测试全部通过；
+v6 帮助页已完成：`/帮助` 返回五点老师的功能指令与示例图片卡片；
+另有 v0.9.0 之后的增量功能「猪猪表情包」（群友发 `猪`/`zhu`/`pig`/`🐖`/`🐷` 随机回图，独立于聊天）、
+「猪结婚」（`/waifu` 或 `/每天日尊挑战`，每天每群形成不重叠配对并拼图回复）
+和「每日天尊挑战」（`/每日天尊挑战`，随机怪物 + 武器 + 头像生成三栏图）；
+398 个自动化测试全部通过；
 线上已运行 v0.9.0（帮助页），等待群内验收；
 代码已提交 GitHub `Mengyks/DeltaForceQQbot`，tag `v0.9.0`。
-v4 直播见 [docs/10](docs/10-直播订阅.md)，v5 制造台利润见 [docs/11](docs/11-制造台利润.md)，v6 帮助页见 [docs/12](docs/12-帮助命令.md)。
+v4 直播见 [docs/10](docs/10-直播订阅.md)，v5 制造台利润见 [docs/11](docs/11-制造台利润.md)，v6 帮助页见 [docs/12](docs/12-帮助命令.md)，
+猪猪表情包见 [docs/16](docs/16-猪猪表情包.md)，猪结婚见 [docs/17](docs/17-猪结婚.md)，每日天尊挑战见 [docs/18](docs/18-每日天尊挑战.md)。
 v3 每日密码：每天 0:15 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
 使用免费的 4399 游戏盒 / eleven.icu 接口，不消耗数据帝额度，见 [docs/08](docs/08-每日密码.md)。
 v4 直播订阅见 [docs/10](docs/10-直播订阅.md)。
@@ -91,7 +99,7 @@ v4 直播订阅见 [docs/10](docs/10-直播订阅.md)。
 py -3.13 -m venv .venv                                # 需要 Python 3.13
 .venv/Scripts/python.exe -m pip install -e ".[dev]"
 cp .env.example .env                                  # 填 ORZICE_TOKEN
-.venv/Scripts/python.exe -m pytest -q                 # 314 个测试
+.venv/Scripts/python.exe -m pytest -q                 # 398 个测试
 .venv/Scripts/python.exe bot.py                       # 默认监听 127.0.0.1:8099
 ```
 
@@ -298,6 +306,71 @@ CRAFTING_IMAGE_MAX_KB=350
 - 预览：`.venv/Scripts/python.exe scripts/render_help_preview.py`
   → `assets/_preview/help_preview.jpg`
 
+## 猪猪表情包（v0.9.0 后增量）
+
+群里发 **`猪`**、**`zhu`**、**`pig`**、**`🐖`**、**`🐷`** 时，机器人从本地目录随机回一张猪表情包。
+
+- 只认**精确**触发词：`猪猪`、`小猪`、`猪！` 不触发；`@机器人 猪` 会触发。
+- **按群隔离**：只回复触发消息所在的群，不会向白名单群广播；同群 5 秒冷却，别的群不受影响。
+- 独立功能：不依赖 `CHAT_ENABLED`/`CHAT_GROUPS`，但必须在 `FUN_GROUPS` 白名单内；命中后也不会交给 LLM 聊天。
+- 图片目录 `assets/memes/pig`（服务器同名路径），启动时扫描；当前 100 张静态图，约 3.4 MB。
+- 图片不入 Git，部署/换机需要单独上传。
+
+```dotenv
+FUN_GROUPS=1071781482,1130331921
+PIG_MEME_ENABLED=true
+PIG_MEME_DIR=assets/memes/pig
+PIG_MEME_COOLDOWN=5
+```
+
+完整说明、素材来源与验收步骤见 [docs/16-猪猪表情包.md](docs/16-猪猪表情包.md)。
+
+## 猪结婚（v0.9.0 后增量）
+
+群里发 **`/waifu`** 或 **`/每天日尊挑战`**，机器人把发送者头像和随机选中的群友头像
+拼进「猪结婚」模板，以引用回复的形式发回，并附带文字「你今天的老婆是 xxx」。
+
+- **每天每群形成互不重叠的配对**：A 选中 B 后，A/B 都被锁定；B 再发直接返回 A，
+  其他人不能选 A/B。
+- A、B 共享同一张配对图（A 左 B 右），文字按发送者换成对方群昵称。
+- 群昵称优先群名片，其次 QQ 昵称，最后 QQ 号；排除机器人。
+- 配对按“日期 + 群号”存 SQLite `data/waifu.sqlite3`，跨天重置，重启不丢；只保留今天和昨天。
+- 独立功能：不依赖 `CHAT_ENABLED`/`CHAT_GROUPS`，但必须在 `FUN_GROUPS` 白名单内。
+- 依赖 Pillow 拼图；模板 `assets/memes/waifu/猪结婚.jpg` 不入 Git，部署需要单独上传。
+
+```dotenv
+FUN_GROUPS=1071781482,1130331921
+WAIFU_ENABLED=true
+WAIFU_DB_PATH=data/waifu.sqlite3
+WAIFU_TEMPLATE=assets/memes/waifu/猪结婚.jpg
+WAIFU_KEEP_DAYS=2
+```
+
+完整规则、模板坐标与部署步骤见 [docs/17-猪结婚.md](docs/17-猪结婚.md)。
+
+## 每日天尊挑战（v0.9.0 后增量）
+
+群里发 **`/每日天尊挑战`**，机器人随机抽一个怪物、一种武器，取发送者头像，
+按「今日天尊 / 今日猎物 / 今日武器」三栏生成 HTML，用 Playwright 截图并压缩，
+以 QQ 引用回复的形式只发图片。
+
+- 素材：`assets/monsters`（71 张）、`assets/weapons`（14 种）、`assets/monster_background`。
+- 文件名格式 `序号、名称`，索引时只取「、」后面的名称。
+- 按“日期 + 群号 + 群友”缓存一天，同一人当天重复查询结果不变；不同群/不同人各自一份。
+- 图片包含发送者的群昵称；群名片为空时退回 QQ 昵称/QQ 号。
+- 预览图 1600×900，JPEG 质量阶梯压缩，目标 350 KB。
+- 与 `/waifu` 没有数据交集：独立插件、独立 SQLite `data/daily_challenge.sqlite3`。
+- 独立于聊天，但必须在 `FUN_GROUPS` 白名单内。
+
+```dotenv
+FUN_GROUPS=1071781482,1130331921
+DAILY_CHALLENGE_ENABLED=true
+DAILY_CHALLENGE_DB_PATH=data/daily_challenge.sqlite3
+DAILY_CHALLENGE_IMAGE_MAX_KB=350
+```
+
+完整素材说明、模板与部署步骤见 [docs/18-每日天尊挑战.md](docs/18-每日天尊挑战.md)。
+
 ## 本地联调工具（不需要 token / 不需要装 NapCat）
 
 | 脚本 | 用途 |
@@ -328,18 +401,21 @@ DeltaForceQQbot/
 │   ├── config.py                 # .env → Settings
 │   ├── logging_setup.py          # 把标准库 logging 接到 loguru（NoneBot 2.5 不再自动接管）
 │   ├── runtime.py                # 运行时装配（客户端/服务/限流器）
-│   ├── adapters/                 # orzice/LLM/每日密码/B站直播客户端、SQLite、表情包、缓存、限流
+│   ├── adapters/                 # orzice/LLM/头像客户端、图库索引、SQLite、表情包、缓存、限流
 │   ├── models/                   # 数据模型（字段语义见 loadout.py / crafting.py 文档）
-│   ├── render/                   # Jinja2 模板 + Playwright：卡战备/每日密码/直播/制造台卡片
-│   └── services/                 # gear_loadout、chat、daily_password、live_watch、crafting、commands、text
+│   ├── render/                   # Jinja2 + Playwright 卡片；Pillow 猪结婚拼图；天尊挑战 HTML
+│   └── services/                 # gear_loadout、chat、daily_password、live_watch、crafting、pig_meme、waifu、daily_challenge、commands、text
 ├── plugins/gear_loadout.py       # 卡战备入口
 ├── plugins/llm_chat.py           # 群聊机器人入口（记录器/聊天/清理指令）
 ├── plugins/daily_password.py     # 每日密码入口（查询 + 0:15 预热 + 11:00 推送）
 ├── plugins/live_watch.py         # B站直播订阅入口（命令 + 180s 轮询 + 卡片推送）
 ├── plugins/crafting.py           # 制造台利润入口（/制造利润 + 卡片）
 ├── plugins/help.py               # 帮助入口（/帮助 + 背景卡片）
+├── plugins/pig_meme.py           # 猪猪表情包入口（精确触发词 + 按群冷却）
+├── plugins/waifu.py              # 猪结婚入口（配对 + 拼图 + 引用回复）
+├── plugins/daily_challenge.py    # 每日天尊挑战入口（图库 + HTML 截图）
 ├── scripts/                      # 联调与运维脚本
-├── tests/                        # 314 个用例，含真实响应契约测试
+├── tests/                        # 398 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档
 ```
 
@@ -362,6 +438,11 @@ DeltaForceQQbot/
 | [docs/12-帮助命令.md](docs/12-帮助命令.md) | **V6 帮助页**：`/帮助` 图片卡片、功能指令与示例、帮助窗口背景、缓存与文字兜底 |
 | [docs/13-掉线重启指南.md](docs/13-掉线重启指南.md) | **运维**：QQ 被踢/NapCat 掉线/服务重启的判断、扫码登录与恢复步骤 |
 | [docs/14-V6交接总结.md](docs/14-V6交接总结.md) | **当前交接文档**：v0.9.0 全部功能、架构、配置参数、存储、部署、已知问题与清单 |
+| [docs/15-群聊白名单与聊天开关.md](docs/15-群聊白名单与聊天开关.md) | **运维**：把群加入/移出聊天白名单、全局开关聊天、对其他功能的影响 |
+| [docs/16-猪猪表情包.md](docs/16-猪猪表情包.md) | **猪猪表情包**：触发词、按群隔离与冷却、素材来源、部署与验收 |
+| [docs/17-猪结婚.md](docs/17-猪结婚.md) | **猪结婚**：每日不重叠配对、共享缓存、拼图坐标、SQLite 与验收 |
+| [docs/18-每日天尊挑战.md](docs/18-每日天尊挑战.md) | **每日天尊挑战**：图库命名、三栏 HTML、Playwright 截图压缩、缓存与白名单 |
+| [docs/19-当前交接文档.md](docs/19-当前交接文档.md) | **当前交接文档**：全部功能、实现机制、架构、配置、存储、部署与已知问题 |
 
 ## 开发流程约定
 
