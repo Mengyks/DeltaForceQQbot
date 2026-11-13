@@ -95,6 +95,9 @@ def test_command_detection(plugin) -> None:
     assert plugin.module._is_command("/制造利润") is True
     assert plugin.module._is_command("/每日利润") is True
     assert plugin.module._is_command("制造利润") is False
+    assert plugin.module._is_command("/帮助") is True
+    assert plugin.module._is_command("/help") is True
+    assert plugin.module._is_command("帮助") is False
     assert plugin.module._is_command("今天天气真好") is False
 
 

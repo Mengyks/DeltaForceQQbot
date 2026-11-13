@@ -1,14 +1,18 @@
 # DeltaForceQQbot
 
-> **接手开发 / 新会话请先读 [docs/09-V3交接总结.md](docs/09-V3交接总结.md) 与 [docs/10-直播订阅.md](docs/10-直播订阅.md)、[docs/11-制造台利润.md](docs/11-制造台利润.md)**，再按需看 [docs/05-V1交接总结.md](docs/05-V1交接总结.md)、[docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md)、[docs/08-每日密码.md](docs/08-每日密码.md)：当前功能/生产配置、V1 基础、V2 聊天、V3 每日密码、V4 直播订阅、V5 制造台利润、部署方式与下一版规划都在里面。
+> **接手开发 / 新会话请先读 [docs/14-V6交接总结.md](docs/14-V6交接总结.md)**（当前功能/配置/架构/运维），
+> 掉线恢复看 [docs/13-掉线重启指南.md](docs/13-掉线重启指南.md)；各功能细节看
+> [docs/10-直播订阅.md](docs/10-直播订阅.md)、[docs/11-制造台利润.md](docs/11-制造台利润.md)、
+> [docs/12-帮助命令.md](docs/12-帮助命令.md)、[docs/08-每日密码.md](docs/08-每日密码.md)，
+> 历史背景看 [docs/05-V1交接总结.md](docs/05-V1交接总结.md)、[docs/07-V2群聊机器人交接总结.md](docs/07-V2群聊机器人交接总结.md)、[docs/09-V3交接总结.md](docs/09-V3交接总结.md)。
 
 为《三角洲行动》玩家提供数据服务的 QQ 群机器人。
 
-**当前状态：v0.8.0（制造台利润，已部署待验收）** —— v1 卡战备、v2 群聊机器人、v3 每日密码、v4 B站直播订阅均已上线；
-v5 制造台利润已完成：四个台 Lv3 各取每小时利润最高的物品，图片卡片 + 12 小时缓存，300 个自动化测试全部通过；
-线上已运行 v0.8.0（制造台利润），等待群内验收；
-GitHub `Mengyks/DeltaForceQQbot` 待验收通过后提交并打 tag `v0.8.0`。
-v4 直播订阅见 [docs/10](docs/10-直播订阅.md)，v5 制造台利润见 [docs/11](docs/11-制造台利润.md)。
+**当前状态：v0.9.0（帮助页，已部署待验收）** —— v1 卡战备、v2 群聊机器人、v3 每日密码、v4 B站直播订阅、v5 制造台利润均已上线；
+v6 帮助页已完成：`/帮助` 返回五点老师的功能指令与示例图片卡片，314 个自动化测试全部通过；
+线上已运行 v0.9.0（帮助页），等待群内验收；
+代码已提交 GitHub `Mengyks/DeltaForceQQbot`，tag `v0.9.0`。
+v4 直播见 [docs/10](docs/10-直播订阅.md)，v5 制造台利润见 [docs/11](docs/11-制造台利润.md)，v6 帮助页见 [docs/12](docs/12-帮助命令.md)。
 v3 每日密码：每天 0:15 预热当天缓存、11:00 推送到白名单群，群友也可发 `/每日密码` 查询；
 使用免费的 4399 游戏盒 / eleven.icu 接口，不消耗数据帝额度，见 [docs/08](docs/08-每日密码.md)。
 v4 直播订阅见 [docs/10](docs/10-直播订阅.md)。
@@ -87,7 +91,7 @@ v4 直播订阅见 [docs/10](docs/10-直播订阅.md)。
 py -3.13 -m venv .venv                                # 需要 Python 3.13
 .venv/Scripts/python.exe -m pip install -e ".[dev]"
 cp .env.example .env                                  # 填 ORZICE_TOKEN
-.venv/Scripts/python.exe -m pytest -q                 # 300 个测试
+.venv/Scripts/python.exe -m pytest -q                 # 314 个测试
 .venv/Scripts/python.exe bot.py                       # 默认监听 127.0.0.1:8099
 ```
 
@@ -282,6 +286,18 @@ CRAFTING_IMAGE_MAX_KB=350
   → `assets/_preview/crafting_profit_preview.jpg`。
 - 接口字段口径、图片映射与验收见 [docs/11-制造台利润.md](docs/11-制造台利润.md)。
 
+## 帮助（v6）
+
+群里发 **`/帮助`**（也支持 `/帮助命令`、`/help`），返回五点老师的功能指令与示例图片卡片。
+
+- 标题：`五点老师 · 帮助命令`
+- 背景：`assets/items/backgrounds/帮助窗口背景.jpg`
+- 内容：卡战备、每日密码、制造利润、直播订阅、群聊、管理员六块，每块有指令格式 + 示例
+- 卡片渲染成功后缓存 24 小时；渲染/发图失败回退同内容的文字版
+- 不请求任何外部接口，不消耗数据帝资源
+- 预览：`.venv/Scripts/python.exe scripts/render_help_preview.py`
+  → `assets/_preview/help_preview.jpg`
+
 ## 本地联调工具（不需要 token / 不需要装 NapCat）
 
 | 脚本 | 用途 |
@@ -321,8 +337,9 @@ DeltaForceQQbot/
 ├── plugins/daily_password.py     # 每日密码入口（查询 + 0:15 预热 + 11:00 推送）
 ├── plugins/live_watch.py         # B站直播订阅入口（命令 + 180s 轮询 + 卡片推送）
 ├── plugins/crafting.py           # 制造台利润入口（/制造利润 + 卡片）
+├── plugins/help.py               # 帮助入口（/帮助 + 背景卡片）
 ├── scripts/                      # 联调与运维脚本
-├── tests/                        # 300 个用例，含真实响应契约测试
+├── tests/                        # 314 个用例，含真实响应契约测试
 └── docs/                         # 规划与设计文档
 ```
 
@@ -342,6 +359,9 @@ DeltaForceQQbot/
 | [docs/09-V3交接总结.md](docs/09-V3交接总结.md) | **V3 功能交接与下一版规划**：当前功能/生产配置、已知问题、直播订阅与制作台利润接入建议 |
 | [docs/10-直播订阅.md](docs/10-直播订阅.md) | **V4 B站直播订阅**：接口实测（UA/412）、全局订阅、轮询去重、卡片与压缩、配置与验收 |
 | [docs/11-制造台利润.md](docs/11-制造台利润.md) | **V5 制造台利润**：Pro 接口字段口径、四台 Lv3、宽松图片索引、12h 缓存、卡片与费用 |
+| [docs/12-帮助命令.md](docs/12-帮助命令.md) | **V6 帮助页**：`/帮助` 图片卡片、功能指令与示例、帮助窗口背景、缓存与文字兜底 |
+| [docs/13-掉线重启指南.md](docs/13-掉线重启指南.md) | **运维**：QQ 被踢/NapCat 掉线/服务重启的判断、扫码登录与恢复步骤 |
+| [docs/14-V6交接总结.md](docs/14-V6交接总结.md) | **当前交接文档**：v0.9.0 全部功能、架构、配置参数、存储、部署、已知问题与清单 |
 
 ## 开发流程约定
 

@@ -35,6 +35,10 @@ CRAFTING_COMMAND_PATTERN = re.compile(
     r"^\s*[/／]\s*(?P<cmd>制造利润|制造台利润|每日利润)\s*(?P<args>.*)$",
     re.S,
 )
+HELP_COMMAND_PATTERN = re.compile(
+    r"^\s*[/／]\s*(?P<cmd>帮助|help|帮助命令|功能)(?P<args>.*)$",
+    re.I | re.S,
+)
 
 EXCHANGE_KEYWORDS = ("兑换", "军需处", "军需")
 
