@@ -1,6 +1,6 @@
 """B站直播订阅插件：命令入口 + 开播轮询 + 卡片推送。
 
-只做 B 站；订阅是全局的，任意一个群添加/删除，两个群同时生效。
+只做 B 站；订阅按群隔离，A 群添加/删除只影响 A 群。
 轮询与推送都是独立任务，失败只记日志并退避，不影响卡战备/聊天/每日密码。
 """
 
@@ -79,9 +79,10 @@ def _is_superuser(event: GroupMessageEvent) -> bool:
     return str(event.get_user_id()) in {str(item) for item in superusers}
 
 
-def _is_group_owner(event: GroupMessageEvent) -> bool:
+def _is_group_manager(event: GroupMessageEvent) -> bool:
+    """群主或群管理员都可以管理本群订阅。"""
     sender = getattr(event, "sender", None)
-    return str(getattr(sender, "role", "") or "") == "owner"
+    return str(getattr(sender, "role", "") or "") in {"owner", "admin"}
 
 
 def _rate_wait(event: GroupMessageEvent, runtime: object) -> float:
@@ -113,9 +114,9 @@ async def handle_live_command(event: GroupMessageEvent) -> None:
         )
 
     if parsed.action in {"add", "remove"} and not (
-        _is_superuser(event) or _is_group_owner(event)
+        _is_superuser(event) or _is_group_manager(event)
     ):
-        await live_matcher.finish("只有群主或 SUPERUSERS 可以添加/删除直播订阅。")
+        await live_matcher.finish("只有群主、群管理员或 SUPERUSERS 可以添加/删除直播订阅。")
 
     if parsed.action in {"add", "remove", "query"}:
         wait = _rate_wait(event, runtime)
@@ -124,7 +125,7 @@ async def handle_live_command(event: GroupMessageEvent) -> None:
 
     if parsed.action == "list":
         try:
-            views = await service.list_subscriptions()
+            views = await service.list_subscriptions(event.group_id)
         except Exception as exc:  # noqa: BLE001
             logger.exception("读取直播订阅失败：%s: %s", exc.__class__.__name__, exc)
             await live_matcher.finish("读取直播订阅失败，请稍后再试。")
@@ -132,7 +133,11 @@ async def handle_live_command(event: GroupMessageEvent) -> None:
 
     if parsed.action == "add":
         try:
-            result = await service.add(parsed.uid, user_id=event.user_id)
+            result = await service.add(
+                parsed.uid,
+                group_id=event.group_id,
+                user_id=event.user_id,
+            )
         except Exception as exc:  # noqa: BLE001
             logger.exception("添加直播订阅异常：%s: %s", exc.__class__.__name__, exc)
             await live_matcher.finish("添加订阅失败，请稍后再试。")
@@ -140,7 +145,7 @@ async def handle_live_command(event: GroupMessageEvent) -> None:
 
     if parsed.action == "remove":
         try:
-            result = await service.remove(parsed.uid)
+            result = await service.remove(parsed.uid, group_id=event.group_id)
         except Exception as exc:  # noqa: BLE001
             logger.exception("删除直播订阅异常：%s: %s", exc.__class__.__name__, exc)
             await live_matcher.finish("删除订阅失败，请稍后再试。")

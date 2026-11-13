@@ -1,4 +1,4 @@
-"""直播订阅服务测试：添加/删除/查询、开播转换、去重、重启、缺数据。"""
+"""直播订阅服务测试：按群隔离、开播转换、多群去重、重启、缺数据。"""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pytest
 
 from deltaforce_bot.adapters.live_bilibili import LiveApiError
 from deltaforce_bot.adapters.live_store import LiveStore
-from deltaforce_bot.models.live import LiveStatus
+from deltaforce_bot.models.live import LiveStatus, LiveSubscription
 from deltaforce_bot.services.live_watch import (
     LiveWatchService,
     format_live_notification_text,
@@ -99,102 +99,148 @@ async def test_normalize_uid() -> None:
         normalize_live_uid("0")
 
 
-async def test_add_offline_and_live_suppression(tmp_path: Path) -> None:
-    service, store, _ = make_service(tmp_path, {"1": status(), "2": status(uid="2", room_id="20")})
+async def test_add_per_group_and_live_suppression(tmp_path: Path) -> None:
+    service, store, _ = make_service(
+        tmp_path,
+        {
+            "1": status(),
+            "2": status(uid="2", room_id="20", live_status=1, live_time=2000),
+        },
+    )
     try:
-        result = await service.add("1", user_id=123)
+        result = await service.add("1", group_id=GROUP_A, user_id=123)
         assert result.ok is True
-        assert "已订阅" in result.message
-        assert store.get_subscription("1") is not None
+        assert "只在本群提醒" in result.message
+        sub = store.get_subscription("1", GROUP_A)
+        assert sub is not None and sub.group_id == GROUP_A
+        assert store.get_subscription("1", GROUP_B) is None
         state = store.get_state("1")
         assert state is not None and state.is_live is False
 
-        service2, store2, _ = make_service(
-            tmp_path / "second",
-            {"2": status(uid="2", live_status=1, live_time=2000)},
-        )
-        try:
-            result2 = await service2.add("2")
-            assert result2.ok is True
-            assert "正在直播" in result2.message
-            for group_id in (GROUP_A, GROUP_B):
-                assert store2.was_notified("2", group_id, "2000") is True
-            polled = await service2.poll_once()
-            assert polled.notifications == []
-        finally:
-            await service2.aclose()
+        live = await service.add("2", group_id=GROUP_A)
+        assert live.ok is True
+        assert "正在直播" in live.message
+        assert store.was_notified("2", GROUP_A, "2000") is True
+        assert store.was_notified("2", GROUP_B, "2000") is False
+
+        # 同一 UID 可以在另一个群独立订阅
+        live_b = await service.add("2", group_id=GROUP_B)
+        assert live_b.ok is True
+        assert store.was_notified("2", GROUP_B, "2000") is True
+        polled = await service.poll_once()
+        assert polled.notifications == []
     finally:
         await service.aclose()
 
 
-async def test_add_rejects_no_room_duplicate_and_invalid(tmp_path: Path) -> None:
-    service, store, _ = make_service(tmp_path, {"1": status()})
+async def test_add_duplicate_in_same_group_but_other_group_allowed(tmp_path: Path) -> None:
+    service, _, _ = make_service(tmp_path, {"1": status()})
     try:
-        no_room = await service.add("999", user_id=1)
-        assert no_room.ok is False
-        assert "没有找到" in no_room.message
-
-        invalid = await service.add("abc")
-        assert invalid.ok is False
-        assert "纯数字" in invalid.message
-
-        first = await service.add("1")
+        first = await service.add("1", group_id=GROUP_A)
         assert first.ok is True
-        second = await service.add("1")
-        assert second.ok is False
-        assert "已经订阅过" in second.message
+        duplicate = await service.add("1", group_id=GROUP_A)
+        assert duplicate.ok is False
+        assert "本群已经订阅过" in duplicate.message
+        other_group = await service.add("1", group_id=GROUP_B)
+        assert other_group.ok is True
     finally:
         await service.aclose()
 
 
-async def test_add_respects_limit(tmp_path: Path) -> None:
+async def test_add_rejects_no_room_invalid_and_limit_per_group(tmp_path: Path) -> None:
     service, _, _ = make_service(
         tmp_path,
-        {"1": status(), "2": status(uid="2", room_id="20")},
+        {
+            "1": status(),
+            "2": status(uid="2", room_id="20"),
+            "999": None,
+        },
         live_max_subscriptions=1,
     )
     try:
-        assert (await service.add("1")).ok is True
-        result = await service.add("2")
-        assert result.ok is False
-        assert "上限" in result.message
+        no_room = await service.add("999", group_id=GROUP_A)
+        assert no_room.ok is False
+        assert "没有找到" in no_room.message
+
+        invalid = await service.add("abc", group_id=GROUP_A)
+        assert invalid.ok is False
+        assert "纯数字" in invalid.message
+
+        assert (await service.add("1", group_id=GROUP_A)).ok is True
+        limit = await service.add("2", group_id=GROUP_A)
+        assert limit.ok is False
+        assert "上限" in limit.message
+
+        # 另一个群有自己的上限
+        assert (await service.add("2", group_id=GROUP_B)).ok is True
     finally:
         await service.aclose()
 
 
-async def test_poll_transition_notifies_each_group_once(tmp_path: Path) -> None:
+async def test_poll_notifies_only_groups_that_subscribed(tmp_path: Path) -> None:
+    service, _, client = make_service(tmp_path, {"1": status(), "2": status(uid="2", room_id="20")})
+    try:
+        await service.add("1", group_id=GROUP_A)
+        await service.add("2", group_id=GROUP_B)
+        client.statuses["1"] = status(live_status=1, live_time=1000)
+        client.statuses["2"] = status(uid="2", room_id="20", live_status=1, live_time=2000)
+
+        result = await service.poll_once()
+        assert result.checked == 2
+        assert result.live == 2
+        by_group = {item.group_id: item for item in result.notifications}
+        assert set(by_group) == {GROUP_A, GROUP_B}
+        assert by_group[GROUP_A].uid == "1"
+        assert by_group[GROUP_B].uid == "2"
+
+        await service.mark_notified(by_group[GROUP_A])
+        second = await service.poll_once()
+        assert [item.group_id for item in second.notifications] == [GROUP_B]
+        await service.mark_notified(second.notifications[0])
+        assert (await service.poll_once()).notifications == []
+    finally:
+        await service.aclose()
+
+
+async def test_remove_only_affects_one_group(tmp_path: Path) -> None:
     service, store, client = make_service(tmp_path, {"1": status()})
     try:
-        await service.add("1")
-        client.statuses["1"] = status(live_status=1, live_time=1792912598, title="开播了")
+        await service.add("1", group_id=GROUP_A)
+        await service.add("1", group_id=GROUP_B)
+        removed = await service.remove("1", group_id=GROUP_A)
+        assert removed.ok is True
+        assert store.get_subscription("1", GROUP_A) is None
+        assert store.get_subscription("1", GROUP_B) is not None
+        assert store.get_state("1") is not None
 
-        first = await service.poll_once()
-        assert first.checked == 1
-        assert first.live == 1
-        assert {item.group_id for item in first.notifications} == {GROUP_A, GROUP_B}
-        notification = first.notifications[0]
-        assert notification.session_key == "1792912598"
-        assert notification.uname == "测试主播"
-        assert notification.room_url == "https://live.bilibili.com/10"
-
-        await service.mark_notified(first.notifications[0])
-        second = await service.poll_once()
-        assert {item.group_id for item in second.notifications} == {GROUP_B}
-
-        await service.mark_notified(second.notifications[0])
-        third = await service.poll_once()
-        assert third.notifications == []
+        client.statuses["1"] = status(live_status=1, live_time=1000)
+        result = await service.poll_once()
+        assert [item.group_id for item in result.notifications] == [GROUP_B]
     finally:
         await service.aclose()
 
 
-async def test_down_then_up_again_notifies_again(tmp_path: Path) -> None:
+async def test_remove_last_group_cleans_state(tmp_path: Path) -> None:
+    service, store, _ = make_service(tmp_path, {"1": status()})
+    try:
+        await service.add("1", group_id=GROUP_A)
+        assert store.get_state("1") is not None
+        removed = await service.remove("1", group_id=GROUP_A)
+        assert removed.ok is True
+        assert store.get_state("1") is None
+        assert (await service.remove("1", group_id=GROUP_A)).ok is False
+    finally:
+        await service.aclose()
+
+
+async def test_down_then_up_again_notifies_again_per_group(tmp_path: Path) -> None:
     service, _, client = make_service(tmp_path, {"1": status()})
     try:
-        await service.add("1")
+        await service.add("1", group_id=GROUP_A)
+        await service.add("1", group_id=GROUP_B)
         client.statuses["1"] = status(live_status=1, live_time=1000)
         first = await service.poll_once()
-        assert len(first.notifications) == 2
+        assert {item.group_id for item in first.notifications} == {GROUP_A, GROUP_B}
         for item in first.notifications:
             await service.mark_notified(item)
 
@@ -203,7 +249,7 @@ async def test_down_then_up_again_notifies_again(tmp_path: Path) -> None:
 
         client.statuses["1"] = status(live_status=1, live_time=2000)
         second = await service.poll_once()
-        assert len(second.notifications) == 2
+        assert {item.group_id for item in second.notifications} == {GROUP_A, GROUP_B}
         assert all(item.session_key == "2000" for item in second.notifications)
     finally:
         await service.aclose()
@@ -212,7 +258,7 @@ async def test_down_then_up_again_notifies_again(tmp_path: Path) -> None:
 async def test_round_is_not_live(tmp_path: Path) -> None:
     service, store, client = make_service(tmp_path, {"1": status()})
     try:
-        await service.add("1")
+        await service.add("1", group_id=GROUP_A)
         client.statuses["1"] = status(live_status=2)
         result = await service.poll_once()
         assert result.notifications == []
@@ -225,7 +271,7 @@ async def test_round_is_not_live(tmp_path: Path) -> None:
 async def test_api_error_does_not_change_state(tmp_path: Path) -> None:
     service, store, client = make_service(tmp_path, {"1": status()})
     try:
-        await service.add("1")
+        await service.add("1", group_id=GROUP_A)
         before = store.get_state("1")
         client.error = LiveApiError("boom")
         with pytest.raises(LiveApiError):
@@ -238,13 +284,14 @@ async def test_api_error_does_not_change_state(tmp_path: Path) -> None:
         await service.aclose()
 
 
-async def test_missing_uid_needs_three_polls_to_go_offline(tmp_path: Path) -> None:
+async def test_missing_uid_counts_once_for_multiple_groups(tmp_path: Path) -> None:
     service, store, client = make_service(
         tmp_path,
         {"1": status(live_status=1, live_time=1000)},
     )
     try:
-        await service.add("1")  # 添加时正在直播，抑制当前场次
+        await service.add("1", group_id=GROUP_A)
+        await service.add("1", group_id=GROUP_B)
         client.statuses.clear()
 
         first = await service.poll_once()
@@ -254,7 +301,7 @@ async def test_missing_uid_needs_three_polls_to_go_offline(tmp_path: Path) -> No
 
         second = await service.poll_once()
         state = store.get_state("1")
-        assert state is not None and state.is_live is True and state.missing_count == 2
+        assert state is not None and state.missing_count == 2
 
         third = await service.poll_once()
         state = store.get_state("1")
@@ -264,10 +311,11 @@ async def test_missing_uid_needs_three_polls_to_go_offline(tmp_path: Path) -> No
         await service.aclose()
 
 
-async def test_restart_does_not_duplicate(tmp_path: Path) -> None:
+async def test_restart_does_not_duplicate_per_group(tmp_path: Path) -> None:
     clock = Clock()
-    service, _store, client = make_service(tmp_path, {"1": status()}, clock=clock)
-    await service.add("1")
+    service, _, client = make_service(tmp_path, {"1": status()}, clock=clock)
+    await service.add("1", group_id=GROUP_A)
+    await service.add("1", group_id=GROUP_B)
     client.statuses["1"] = status(live_status=1, live_time=1000)
     result = await service.poll_once()
     assert len(result.notifications) == 2
@@ -275,7 +323,6 @@ async def test_restart_does_not_duplicate(tmp_path: Path) -> None:
         await service.mark_notified(item)
     await service.aclose()
 
-    # 模拟重启：同一个 SQLite 文件，新 service/store
     settings = make_live_settings(tmp_path)
     store2 = LiveStore(settings.live_db_path)
     client2 = FakeLiveClient({"1": status(live_status=1, live_time=1000)})
@@ -287,25 +334,29 @@ async def test_restart_does_not_duplicate(tmp_path: Path) -> None:
         await service2.aclose()
 
 
-async def test_first_observation_without_state_does_not_notify(tmp_path: Path) -> None:
+async def test_first_observation_suppresses_all_subscribed_groups(tmp_path: Path) -> None:
     service, store, client = make_service(
         tmp_path,
         {"1": status(live_status=1, live_time=1000)},
     )
     try:
         # 手工写入订阅但没有状态（模拟旧数据/迁移）
-        from deltaforce_bot.models.live import LiveSubscription
-
-        await asyncio.to_thread(
-            store.add_subscription,
-            LiveSubscription(uid="1", room_id="10", uname="主播", added_at=1.0),
-        )
+        for group_id in (GROUP_A, GROUP_B):
+            await asyncio.to_thread(
+                store.add_subscription,
+                LiveSubscription(
+                    uid="1",
+                    group_id=group_id,
+                    room_id="10",
+                    uname="主播",
+                    added_at=1.0,
+                ),
+            )
         result = await service.poll_once()
         assert result.notifications == []
         state = store.get_state("1")
         assert state is not None and state.is_live is True
 
-        # 第二轮也不能补推；首次观察应写入抑制记录
         second = await service.poll_once()
         assert second.notifications == []
         for group_id in (GROUP_A, GROUP_B):
@@ -314,10 +365,11 @@ async def test_first_observation_without_state_does_not_notify(tmp_path: Path) -
         await service.aclose()
 
 
-async def test_session_change_while_live_is_suppressed(tmp_path: Path) -> None:
+async def test_session_change_while_live_suppressed_for_all_groups(tmp_path: Path) -> None:
     service, store, client = make_service(tmp_path, {"1": status()})
     try:
-        await service.add("1")
+        await service.add("1", group_id=GROUP_A)
+        await service.add("1", group_id=GROUP_B)
         client.statuses["1"] = status(live_status=1, live_time=1000)
         first = await service.poll_once()
         assert len(first.notifications) == 2
@@ -333,26 +385,48 @@ async def test_session_change_while_live_is_suppressed(tmp_path: Path) -> None:
         await service.aclose()
 
 
-async def test_list_and_format(tmp_path: Path) -> None:
-    service, _, client = make_service(tmp_path, {"1": status()})
+async def test_list_and_format_is_group_scoped(tmp_path: Path) -> None:
+    service, _, client = make_service(tmp_path, {"1": status(), "2": status(uid="2", room_id="20")})
     try:
-        await service.add("1")
-        views = await service.list_subscriptions()
-        assert len(views) == 1
-        assert views[0].subscription.uid == "1"
-        assert "全局直播订阅" in format_live_subscriptions(views)
-        assert "未开播" in format_live_subscriptions(views)
+        await service.add("1", group_id=GROUP_A)
+        await service.add("2", group_id=GROUP_B)
+        views_a = await service.list_subscriptions(GROUP_A)
+        views_b = await service.list_subscriptions(GROUP_B)
+        assert [view.subscription.uid for view in views_a] == ["1"]
+        assert [view.subscription.uid for view in views_b] == ["2"]
+        text = format_live_subscriptions(views_a)
+        assert "本群直播订阅" in text
+        assert "UID 1" in text and "UID 2" not in text
 
         client.statuses["1"] = status(live_status=1, live_time=1000)
         live = await service.query("1")
         assert live is not None
-        text = format_live_status(live)
-        assert "直播中" in text
-        assert "https://live.bilibili.com/10" in text
+        status_text = format_live_status(live)
+        assert "直播中" in status_text
+        assert "https://live.bilibili.com/10" in status_text
 
         notification = (await service.poll_once()).notifications[0]
         assert "【B站开播】" in format_live_notification_text(notification)
         assert "https://live.bilibili.com/10" in format_live_notification_text(notification)
+    finally:
+        await service.aclose()
+
+
+async def test_poll_ignores_subscriptions_of_groups_outside_whitelist(tmp_path: Path) -> None:
+    service, store, client = make_service(
+        tmp_path,
+        {"1": status(live_status=1, live_time=1000)},
+        chat_groups="30000",
+    )
+    try:
+        await asyncio.to_thread(
+            store.add_subscription,
+            LiveSubscription(uid="1", group_id=GROUP_B, room_id="10", uname="主播", added_at=1.0),
+        )
+        result = await service.poll_once()
+        assert result.checked == 0
+        assert result.notifications == []
+        assert client.calls == []
     finally:
         await service.aclose()
 

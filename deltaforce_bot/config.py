@@ -117,7 +117,7 @@ class Settings(BaseSettings):
     daily_password_tz_offset: int = 8  # 服务器通常是 UTC，按 UTC+8 计算“今天”、0:15 和 11:00
     daily_password_history_days: int = 7  # 本地快照/推送记录保留天数
 
-    # 直播订阅（v4，B站）：全局订阅，开播时推送到 CHAT_GROUPS
+    # 直播订阅（v4，B站）：按群订阅，开播时只推送到订阅了该 UID 的群
     live_enabled: bool = False
     live_db_path: Path = PROJECT_ROOT / "data" / "live.sqlite3"
     live_poll_interval: int = 180  # 秒；批量查询所有订阅

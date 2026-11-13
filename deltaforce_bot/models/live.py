@@ -102,9 +102,10 @@ class LiveState:
 
 @dataclass(frozen=True)
 class LiveSubscription:
-    """一个全局订阅（两个群共用同一份列表）。"""
+    """某个群的一条直播订阅；同一个 UID 可以在多个群分别订阅。"""
 
     uid: str
+    group_id: int = 0
     room_id: str = ""
     uname: str = ""
     added_by: int = 0

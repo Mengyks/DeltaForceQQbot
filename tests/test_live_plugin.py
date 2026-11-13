@@ -90,10 +90,17 @@ def test_parse_live_command() -> None:
     assert parse_live_command("/卡战备 巴克什 绝密") is None
 
 
-def test_group_owner_only(plugin) -> None:
-    assert plugin.module._is_group_owner(make_event("x", role="owner")) is True
-    assert plugin.module._is_group_owner(make_event("x", role="admin")) is False
-    assert plugin.module._is_group_owner(make_event("x", role="member")) is False
+def test_help_text_matches_per_group_and_admin(plugin) -> None:
+    text = plugin.module.format_live_help()
+    assert "只在本群生效" in text
+    assert "群管理员" in text
+    assert "两个群" not in text
+
+
+def test_group_manager_roles(plugin) -> None:
+    assert plugin.module._is_group_manager(make_event("x", role="owner")) is True
+    assert plugin.module._is_group_manager(make_event("x", role="admin")) is True
+    assert plugin.module._is_group_manager(make_event("x", role="member")) is False
 
 
 class StopCommand(Exception):
@@ -111,21 +118,21 @@ class FakeMatcher:
 
 class FakeCommandService:
     def __init__(self) -> None:
-        self.added: list[tuple[str, int]] = []
-        self.removed: list[str] = []
+        self.added: list[tuple[str, int, int]] = []
+        self.removed: list[tuple[str, int]] = []
         self.queried: list[str] = []
-        self.list_calls = 0
+        self.list_groups: list[int] = []
 
-    async def add(self, uid: str, *, user_id: int = 0):
-        self.added.append((uid, user_id))
+    async def add(self, uid: str, *, group_id: int = 0, user_id: int = 0):
+        self.added.append((uid, group_id, user_id))
         return SimpleNamespace(message="ADDED")
 
-    async def remove(self, uid: str):
-        self.removed.append(uid)
+    async def remove(self, uid: str, *, group_id: int = 0):
+        self.removed.append((uid, group_id))
         return SimpleNamespace(message="REMOVED")
 
-    async def list_subscriptions(self):
-        self.list_calls += 1
+    async def list_subscriptions(self, group_id: int):
+        self.list_groups.append(group_id)
         return []
 
     async def query(self, uid: str):
@@ -177,19 +184,28 @@ async def test_command_permission_and_actions(plugin, monkeypatch) -> None:
     matcher, _ = await call_command(
         plugin,
         monkeypatch,
-        make_event("/直播订阅 添加 1", role="admin"),
+        make_event("/直播订阅 添加 1", role="member"),
         service=service,
     )
-    assert "只有群主或 SUPERUSERS" in matcher.messages[-1]
+    assert "只有群主、群管理员或 SUPERUSERS" in matcher.messages[-1]
     assert service.added == []
 
     matcher, _ = await call_command(
         plugin,
         monkeypatch,
-        make_event("/直播订阅 添加 1", role="owner"),
+        make_event("/直播订阅 添加 1", role="admin"),
         service=service,
     )
-    assert service.added == [("1", 20000)]
+    assert service.added == [("1", 30000, 20000)]
+    assert matcher.messages[-1] == "ADDED"
+
+    matcher, _ = await call_command(
+        plugin,
+        monkeypatch,
+        make_event("/直播订阅 添加 2", role="owner"),
+        service=service,
+    )
+    assert service.added[-1] == ("2", 30000, 20000)
     assert matcher.messages[-1] == "ADDED"
 
     matcher, _ = await call_command(
@@ -198,8 +214,8 @@ async def test_command_permission_and_actions(plugin, monkeypatch) -> None:
         make_event("/直播订阅 列表", role="member"),
         service=service,
     )
-    assert service.list_calls == 1
-    assert "当前没有直播订阅" in matcher.messages[-1]
+    assert service.list_groups == [30000]
+    assert "本群没有直播订阅" in matcher.messages[-1]
 
     matcher, _ = await call_command(
         plugin,
@@ -222,7 +238,7 @@ async def test_command_superuser_can_manage(plugin, monkeypatch) -> None:
         make_event("/直播订阅 删除 1", role="member"),
         service=service,
     )
-    assert service.removed == ["1"]
+    assert service.removed == [("1", 30000)]
     assert matcher.messages[-1] == "REMOVED"
 
 

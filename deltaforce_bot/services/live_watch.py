@@ -1,9 +1,10 @@
-"""直播订阅业务层：订阅增删、批量轮询、开播通知生成。
+"""直播订阅业务层（按群）：订阅增删、批量轮询、开播通知生成。
 
-约束（按用户确认）：
-- 全局订阅：任意群添加/删除，两个群同时生效；
+规则（2026-11 调整）：
+- 订阅按群隔离：A 群订阅的 UID 只在 A 群推送，不影响 B/C 群；
+- 同一 UID 可以被多个群分别订阅，轮询只查一次，通知按群分别去重；
 - 只推开播；同一场直播每个群只推一次；
-- 添加时主播已在直播，则抑制当前场次，下次真正开播再推；
+- 添加时主播已在直播，只抑制当前群的当前场次；
 - 接口失败、缺数据都不能当成“下播”，状态保持不变，等下一轮。
 """
 
@@ -92,29 +93,32 @@ class LiveWatchService:
         return self._settings
 
     @property
-    def target_groups(self) -> set[int]:
+    def allowed_groups(self) -> set[int]:
+        """直播命令和推送只处理 CHAT_GROUPS 内的群。"""
         return set(getattr(self._settings, "chat_group_set", set()))
 
-    # ---------- 订阅管理 ----------
-    async def add(self, raw_uid: str, *, user_id: int = 0) -> LiveAddResult:
+    # ---------- 订阅管理（按群） ----------
+    async def add(self, raw_uid: str, *, group_id: int, user_id: int = 0) -> LiveAddResult:
         try:
             uid = normalize_live_uid(raw_uid)
         except ValueError as exc:
             return LiveAddResult(False, str(exc))
+        if int(group_id) <= 0:
+            return LiveAddResult(False, "缺少群号，无法添加订阅。")
 
-        existing = await asyncio.to_thread(self._store.get_subscription, uid)
+        existing = await asyncio.to_thread(self._store.get_subscription, uid, group_id)
         if existing is not None:
             return LiveAddResult(
                 False,
-                f"已经订阅过 {existing.display_name}（UID {uid}），不需要重复添加。",
+                f"本群已经订阅过 {existing.display_name}（UID {uid}），不需要重复添加。",
             )
 
         limit = max(int(getattr(self._settings, "live_max_subscriptions", 50)), 1)
-        count = await asyncio.to_thread(self._store.count_subscriptions)
+        count = await asyncio.to_thread(self._store.count_subscriptions, group_id)
         if count >= limit:
             return LiveAddResult(
                 False,
-                f"直播订阅已达上限（{limit} 个），请先删除不用的订阅。",
+                f"本群直播订阅已达上限（{limit} 个），请先删除不用的订阅。",
             )
 
         try:
@@ -141,6 +145,7 @@ class LiveWatchService:
         now = self._clock()
         subscription = LiveSubscription(
             uid=status.uid or uid,
+            group_id=int(group_id),
             room_id=status.room_id,
             uname=status.uname,
             added_by=int(user_id or 0),
@@ -148,99 +153,111 @@ class LiveWatchService:
         )
         inserted = await asyncio.to_thread(self._store.add_subscription, subscription)
         if not inserted:
-            return LiveAddResult(False, f"已经订阅过 UID {uid}。")
+            return LiveAddResult(False, f"本群已经订阅过 UID {uid}。")
 
         await asyncio.to_thread(
             self._store.upsert_state,
             LiveState(status=status, checked_at=now),
         )
 
-        groups = self.target_groups
         if status.is_live:
-            for group_id in groups:
-                await asyncio.to_thread(
-                    self._store.mark_notification,
-                    status.uid or uid,
-                    group_id,
-                    status.session_key,
-                    kind="suppress",
-                    notified_at=now,
-                )
+            await asyncio.to_thread(
+                self._store.mark_notification,
+                status.uid or uid,
+                int(group_id),
+                status.session_key,
+                kind="suppress",
+                notified_at=now,
+            )
             logger.info(
-                "直播订阅已添加：UID=%s 主播=%s；添加时正在直播，已抑制当前场次",
+                "直播订阅已添加：群=%s UID=%s 主播=%s；添加时正在直播，已抑制当前场次",
+                group_id,
                 subscription.uid,
                 subscription.uname or "-",
             )
             message = (
                 f"已订阅 {subscription.display_name}（UID {subscription.uid}，房间 {subscription.room_id}）。"
-                "当前正在直播，本次不推送；下次开播会提醒已配置的群。"
+                "当前正在直播，本次不推送；下次开播只在本群提醒。"
             )
         else:
             logger.info(
-                "直播订阅已添加：UID=%s 主播=%s；当前%s",
+                "直播订阅已添加：群=%s UID=%s 主播=%s；当前%s",
+                group_id,
                 subscription.uid,
                 subscription.uname or "-",
                 status.status_text,
             )
             message = (
                 f"已订阅 {subscription.display_name}（UID {subscription.uid}，房间 {subscription.room_id}）。"
-                f"当前{status.status_text}，开播后会提醒已配置的群。"
+                f"当前{status.status_text}，开播后只在本群提醒。"
             )
-
-        if not groups:
-            message += "\n注意：当前 CHAT_GROUPS 为空，开播后不会推送。"
         return LiveAddResult(True, message, status)
 
-    async def remove(self, raw_uid: str) -> LiveRemoveResult:
+    async def remove(self, raw_uid: str, *, group_id: int) -> LiveRemoveResult:
         try:
             uid = normalize_live_uid(raw_uid)
         except ValueError as exc:
             return LiveRemoveResult(False, str(exc))
 
-        subscription = await asyncio.to_thread(self._store.get_subscription, uid)
+        subscription = await asyncio.to_thread(self._store.get_subscription, uid, group_id)
         if subscription is None:
-            return LiveRemoveResult(False, f"没有找到 UID {uid} 的直播订阅。")
+            return LiveRemoveResult(False, f"本群没有订阅 UID {uid}。")
 
-        await asyncio.to_thread(self._store.remove_subscription, uid)
-        await asyncio.to_thread(self._store.delete_state, uid)
-        logger.info("直播订阅已删除：UID=%s 主播=%s", uid, subscription.uname or "-")
+        await asyncio.to_thread(self._store.remove_subscription, uid, group_id)
+        remaining = await asyncio.to_thread(self._store.count_subscriptions_for_uid, uid)
+        if remaining == 0:
+            await asyncio.to_thread(self._store.delete_state, uid)
+        logger.info(
+            "直播订阅已删除：群=%s UID=%s 主播=%s",
+            group_id,
+            uid,
+            subscription.uname or "-",
+        )
         return LiveRemoveResult(
             True,
-            f"已取消订阅 {subscription.display_name}（UID {uid}），之后不再推送。",
+            f"已取消本群对 {subscription.display_name}（UID {uid}）的订阅，之后本群不再推送。",
         )
 
     async def query(self, raw_uid: str) -> LiveStatus | None:
         uid = normalize_live_uid(raw_uid)
         return await self._client.fetch_status(uid)
 
-    async def list_subscriptions(self) -> list[LiveSubscriptionView]:
-        subscriptions = await asyncio.to_thread(self._store.list_subscriptions)
+    async def list_subscriptions(self, group_id: int) -> list[LiveSubscriptionView]:
+        subscriptions = await asyncio.to_thread(self._store.list_subscriptions, group_id)
         states = await asyncio.to_thread(self._store.list_states)
         return [
             LiveSubscriptionView(subscription=item, state=states.get(item.uid))
             for item in subscriptions
         ]
 
-    # ---------- 轮询 ----------
+    # ---------- 轮询（按 UID 查一次，按群通知） ----------
     async def poll_once(self) -> LivePollResult:
         now = self._clock()
-        subscriptions = await asyncio.to_thread(self._store.list_subscriptions)
+        allowed = self.allowed_groups
+        all_subscriptions = await asyncio.to_thread(self._store.list_subscriptions)
+        subscriptions = [
+            subscription
+            for subscription in all_subscriptions
+            if subscription.group_id in allowed
+        ]
         result = LivePollResult(checked=len(subscriptions))
         if not subscriptions:
             return result
 
-        statuses = await self._client.fetch_statuses([item.uid for item in subscriptions])
-        states = await asyncio.to_thread(self._store.list_states)
-        groups = self.target_groups
-
+        by_uid: dict[str, list[LiveSubscription]] = {}
         for subscription in subscriptions:
-            uid = subscription.uid
+            by_uid.setdefault(subscription.uid, []).append(subscription)
+
+        statuses = await self._client.fetch_statuses(list(by_uid))
+        states = await asyncio.to_thread(self._store.list_states)
+
+        for uid, subs in by_uid.items():
             status = statuses.get(uid)
             previous = states.get(uid)
 
             if status is None:
                 result.missing.append(uid)
-                await self._handle_missing(subscription, previous, now)
+                await self._handle_missing(subs[0], previous, now)
                 continue
 
             if previous is not None and (
@@ -266,9 +283,9 @@ class LiveWatchService:
                 continue
 
             result.live += 1
+            groups = [sub.group_id for sub in subs]
             if previous is None:
-                # 首次观察（例如手工写入/旧数据迁移）不补推，避免启动时刷屏。
-                # 同时写入抑制记录，否则下一轮会把它当成“开播转换”补推。
+                # 首次观察（例如旧数据迁移）不补推；对当前所有订阅群写抑制记录。
                 for group_id in groups:
                     await asyncio.to_thread(
                         self._store.mark_notification,
@@ -278,10 +295,14 @@ class LiveWatchService:
                         kind="suppress",
                         notified_at=now,
                     )
-                logger.info("首次观察 UID=%s 正在直播，不补推", uid)
+                logger.info(
+                    "首次观察 UID=%s 正在直播，不补推（%s 个群）",
+                    uid,
+                    len(groups),
+                )
                 continue
             if previous.is_live and previous.status.session_key != status.session_key:
-                # 仍在直播但 live_time 变了（断流重连等）：按同一场处理，避免重复推送。
+                # 仍在直播但 live_time 变了：按同一场处理，抑制所有订阅群的新场次。
                 for group_id in groups:
                     await asyncio.to_thread(
                         self._store.mark_notification,
@@ -291,10 +312,15 @@ class LiveWatchService:
                         kind="suppress",
                         notified_at=now,
                     )
-                logger.info("UID=%s 直播场次标识变化但仍在直播，抑制新场次", uid)
+                logger.info(
+                    "UID=%s 直播场次标识变化但仍在直播，抑制新场次（%s 个群）",
+                    uid,
+                    len(groups),
+                )
                 continue
 
-            for group_id in sorted(groups):
+            for subscription in subs:
+                group_id = subscription.group_id
                 if await asyncio.to_thread(
                     self._store.was_notified, uid, group_id, status.session_key
                 ):
@@ -422,8 +448,8 @@ def format_live_status(status: LiveStatus) -> str:
 
 def format_live_subscriptions(views: list[LiveSubscriptionView]) -> str:
     if not views:
-        return "当前没有直播订阅。\n发送 /直播订阅 添加 <B站UID> 添加一个。"
-    lines = [f"全局直播订阅（两个群共同，共 {len(views)} 个）："]
+        return "本群没有直播订阅。\n发送 /直播订阅 添加 <B站UID> 添加一个。"
+    lines = [f"本群直播订阅（共 {len(views)} 个）："]
     for index, view in enumerate(views[:30], start=1):
         item = view.subscription
         state = view.state

@@ -69,7 +69,7 @@ HELP_SECTIONS: tuple[HelpSection, ...] = (
             HelpCommandSpec("/直播订阅 查询 <B站UID>"),
             HelpCommandSpec("/直播订阅 删除 <B站UID>"),
         ),
-        note="仅群主/SUPERUSERS 可增删；仅支持 B 站",
+        note="仅群主/群管理员/SUPERUSERS 可增删；订阅只在本群生效；仅支持 B 站",
     ),
     HelpSection(
         title="群聊",
